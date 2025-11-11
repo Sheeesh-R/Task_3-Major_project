@@ -1,0 +1,429 @@
+/* 
+ * Filipino Recipes Website - Styles
+ * 
+ * This CSS file contains all the styling for the Filipino Recipes website.
+ * It includes styles for layout, navigation, cards, and responsive design.
+ */
+
+/* ------- MAIN COLORS ------- */
+:root {
+    --red-color: rgb(174, 60, 60);      /* Main red color used in header and buttons */
+    --dark-red: rgb(150, 60, 60);       /* Darker red used for hover effects */
+    --light-gray: #f4f4f4;              /* Light gray background for cards */
+    --border-color: #ccc;               /* Border color for cards and other elements */
+}
+
+/* ------- GENERAL STYLES ------- */
+body {
+    margin: 0;                         /* Removes default margin */
+    font-family: Arial, sans-serif;     /* Sets the main font for the website */
+    box-sizing: border-box;             /* Ensures padding and border are included in width/height */
+}
+
+/* Reusable utility classes */
+.text-center {
+    text-align: center;                /* Centers text horizontally */
+}
+
+/* ------- NAVIGATION STYLES ------- */
+.btn-link {
+    color: white;                      /* White text color */
+    text-decoration: none;              /* Removes underline from links */
+    padding: 5px 10px;                  /* Space inside the button (top/bottom, left/right) */
+    border-radius: 5px;                 /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth color change when hovering */
+}
+
+/* Hover effect - styles that apply when mouse moves over an element */
+.btn-link:hover {
+    background-color: var(--dark-red);  /* Changes background color on hover */
+}
+
+.btn-link.active {
+    background-color: var(--dark-red);
+}
+
+/* ------- LAYOUT STYLES ------- */
+/* Page grid container - keeps header, content, and footer stacked vertically */
+.grid-container {
+    min-height: 100vh;                  /* Ensures page fills the viewport height */
+    display: grid;                      /* Use grid to control vertical layout */
+    grid-template-rows: auto 1fr auto;  /* Header, flexible content, footer */
+}
+
+/* Grid layout - arranges recipe cards responsively */
+.grid-4-col {
+    display: grid;                      /* Creates a grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    /* Automatically fits as many 250px columns as possible */
+    gap: 20px;                          /* Space between grid items */
+    padding: 0 20px;                    /* Space on left and right sides */
+}
+
+/* ------- CARD STYLES ------- */
+/* Card component - used for recipe preview boxes */
+.card {
+    background-color: var(--light-gray); /* Light gray background */
+    padding: 20px;                      /* Space inside the card */
+    border: 1px solid var(--border-color); /* Thin border around the card */
+    border-radius: 10px;                /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+}
+
+.card-image {
+    width: 100%;                        /* Fill card width */
+    height: 180px;                      /* Consistent image height */
+    object-fit: cover;                  /* Crop to fill without distortion */
+    border-radius: 8px;                 /* Rounded corners to match card */
+    margin-bottom: 15px;                /* Space between image and text */
+}
+
+/* ------- RECIPE LINK STYLES ------- */
+/* Links to recipe details */
+.recipe-link {
+    font-size: 22px;                    /* Larger text size for recipe titles */
+    text-decoration: none;              /* Removes underline from links */
+    color: black;                       /* Black text color */
+    transition: color 0.3s ease;        /* Smooth color change when hovering */
+}
+
+/* Hover effect for recipe links */
+.recipe-link:hover {
+    color: rgb(200, 60, 60);            /* Changes to red color when hovering */
+}
+
+/* ------- RECIPE TEXT STYLES ------- */
+/* Styles for recipe descriptions and categories */
+.recipe-short-des,
+.category {
+    font-size: 14px;                    /* Smaller text size */
+    color: #000000;                     /* Black text color */
+    line-height: 1.3;                   /* Space between lines of text */
+    margin-top: 5px;                    /* Space above the text */
+}
+
+/* Category label styling */
+.category {
+    font-weight: bold;                  /* Makes category text bold */
+}
+
+/* ------- HEADER STYLES ------- */
+/* Main header at the top of each page */
+.header {
+    background-color: var(--red-color);  /* Red background color */
+    color: white;                       /* White text color */
+    display: flex;                      /* Allows items to be positioned side by side */
+    justify-content: space-between;     /* Puts space between logo and navigation */
+    align-items: center;                /* Centers items vertically */
+    padding: 20px;                      /* Space inside the header */
+    margin-bottom: 20px;                /* Space below the header */
+}
+
+/* Logo link in the header */
+.logo-link {
+    font-family: 'Asar', cursive;       /* Special font for the logo */
+    font-size: 22px;                    /* Larger text size */
+    color: white;                       /* White text color */
+    text-decoration: none;              /* Removes underline from link */
+    transition: color 0.3s ease;        /* Smooth color change when hovering */
+}
+
+/* Hover effect for logo */
+.logo-link:hover {
+    color: rgb(255, 102, 102);          /* Lighter red color when hovering */
+}
+
+/* ------- FOOTER STYLES ------- */
+/* Footer at the bottom of each page */
+.footer {
+    background-color: var(--red-color);  /* Red background color (same as header) */
+    color: white;                       /* White text color */
+    text-align: center;                 /* Centers text horizontally */
+    padding: 20px;                      /* Space inside the footer */
+    margin-top: 20px;                   /* Space above the footer */
+}
+
+/* ------- RECIPE DETAIL PAGE STYLES ------- */
+/* Container for recipe image and details - uses flexbox layout */
+.recipe-content {
+    display: flex;                      /* Arranges items side by side */
+    flex-wrap: wrap;                    /* Allows items to wrap to next line on smaller screens */
+    gap: 20px;                          /* Space between image and details */
+    padding-left: 20px;                 /* Space on the left side */
+    padding-right: 20px;                /* Space on the right side */
+    box-sizing: border-box;             /* Ensures padding is included in width calculation */
+}
+
+/* Recipe image styling */
+.recipe-image {
+    width: 30%;                         /* Takes up 30% of the container width */
+    max-width: 100%;                    /* Prevents image from being larger than its container */
+    height: auto;                       /* Maintains image proportions */
+    border-radius: 10px;                /* Rounded corners for the image */
+    object-fit: cover;                  /* Ensures image covers the area nicely */
+}
+
+/* Recipe details container - holds title, ingredients, directions */
+.recipe-details-container {
+    flex: 1;                            /* Grows to fill remaining space */
+    padding: 20px;                      /* Space inside the container */
+    background-color: white;            /* White background */
+    border: 1px solid lightgrey;        /* Light gray border */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    border-radius: 10px;                /* Rounded corners */
+    box-sizing: border-box;             /* Ensures padding is included in width */
+    width: calc(70% - 40px);            /* Takes up 70% of container width minus gap */
+}
+
+/* Recipe metadata section - stacks detail chips vertically */
+.recipe-info {  
+    display: flex;                      /* Use flex to control layout */
+    flex-direction: column;             /* Place items on separate lines */
+    gap: 4px;                           /* Space between metadata rows */
+    align-items: flex-start;            /* Align text to the left */
+}
+
+.recipe-info span {
+    font-size: 14px;                    /* Match recipe description text size */
+    color: #555;                        /* Match recipe description text colour */
+}
+
+.info-section + .info-section {
+    margin-top: 30px;
+}
+
+.info-section h2 {
+    margin-bottom: 10px;
+}
+
+/* ------- RESPONSIVE DESIGN ------- */
+/* These styles change the layout when viewing on smaller screens like phones and tablets */
+/* Applied when screen width is less than 768 pixels */
+@media (max-width: 768px) {
+    /* Changes recipe layout to stack vertically on small screens */
+    .recipe-content {
+        flex-direction: column;          /* Stack image and content vertically instead of side by side */
+    }
+
+    /* Makes image and details take full width on small screens */
+    .recipe-image,
+    .recipe-details-container {
+        width: 100%;                     /* Full width for smaller screens */
+    }
+
+    /* Adds space between image and details when stacked */
+    .recipe-details-container {
+        margin-top: 20px;                /* Space between stacked elements */
+    }
+}
+
+/* ------- RECIPE DETAILS TEXT STYLES ------- */
+/* Recipe title on detail page */
+.recipe-details-container h1 {
+    font-size: 22px;                    /* Size of the recipe title */
+    margin-bottom: 20px;                /* Space below the title */
+}
+
+/* Text, lists, and paragraphs in recipe details */
+.recipe-details-container p,
+.recipe-details-container ul,
+.recipe-details-container ol {
+    font-size: 14px;                    /* Text size for recipe content */
+    margin-bottom: 20px;                /* Space below each element */
+    color: #555;                        /* Soft gray color for text */
+}
+
+/* List items in ingredients and directions */
+.recipe-details-container ul li,
+.recipe-details-container ol li {
+    margin-bottom: 10px;                /* Space between list items */
+}
+
+/* ------- RECIPE ACTION BUTTONS ------- */
+/* Container for edit/delete buttons */
+.recipe-actions {
+    text-align: right;                  /* Aligns buttons to the right */
+    margin-bottom: 20px;                /* Space below the buttons */
+}
+
+/* Edit and delete link styling */
+.action-link {
+    font-size: 14px;                    /* Text size for action links */
+    color: rgb(220, 20, 60);            /* Red color for Edit/Delete links */
+    text-decoration: none;              /* Removes underline from links */
+    margin-left: 10px;                  /* Space between links */
+    transition: color 0.3s ease;        /* Smooth color change when hovering */
+}
+
+/* Hover effect for action links */
+.action-link:hover {
+    color: rgb(255, 102, 102);          /* Lighter red color when hovering */
+}
+
+.inline-form {
+    display: inline;
+}
+
+.inline-form .action-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* ------- FORM STYLES ------- */
+/* Container for the add recipe form */
+.form-container {
+    background-color: var(--light-gray); /* Light gray background */
+    padding: 20px;                      /* Space inside the form container */
+    border-radius: 10px;                /* Rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    width: 100%;                        /* Full width form */
+    max-width: none;                    /* No maximum width limit */
+    margin: 0 auto;                     /* Centers the form horizontally */
+    border: 1px solid lightgrey;        /* Light border around the form */
+    box-sizing: border-box;             /* Ensures padding is included in width */
+}
+
+/* Form field groups - each input and its label */
+.form-group {
+    margin-bottom: 20px;                /* Space between form fields */
+}
+
+/* Form field labels */
+.form-group label {
+    display: block;                     /* Makes label appear on its own line */
+    margin-bottom: 5px;                 /* Space below the label */
+    font-weight: bold;                  /* Makes label text bold */
+}
+
+/* Text inputs and textareas */
+.form-group input,
+.form-group textarea {
+    width: 100%;                        /* Makes inputs take full width */
+    padding: 10px;                      /* Space inside the inputs */
+    font-size: 14px;                    /* Text size for inputs */
+    border: 1px solid #ccc;             /* Light border around inputs */
+    border-radius: 5px;                 /* Rounded corners for inputs */
+    box-sizing: border-box;             /* Ensures padding is included in width */
+}
+
+/* Form buttons container */
+.form-actions {
+    display: flex;                      /* Arranges buttons side by side */
+    gap: 10px;                          /* Space between buttons */
+    justify-content: flex-start;        /* Left-aligns the buttons */
+}
+
+.form-error {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid var(--dark-red);
+    border-radius: 5px;
+    background-color: rgba(174, 60, 60, 0.1);
+    color: var(--dark-red);
+    font-weight: bold;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Button styling */
+.btn {
+    padding: 10px 20px;                 /* Space inside buttons */
+    background-color: var(--red-color);  /* Red background color */
+    color: white;                       /* White text color */
+    border: none;                       /* No border */
+    border-radius: 5px;                 /* Rounded corners */
+    cursor: pointer;                    /* Changes cursor to hand when hovering */
+    transition: background-color 0.3s ease; /* Smooth color change when hovering */
+}
+
+/* Hover effect for buttons */
+.btn:hover {
+    background-color: var(--dark-red);  /* Darker red when hovering */
+}
+
+/* ------- MOBILE MENU STYLES ------- */
+/* Hamburger menu icon - hidden on desktop, visible on mobile */
+.nav-toggle {
+    display: none;                      /* Hidden on larger screens */
+}
+
+/* ------- RESPONSIVE DESIGN FOR MOBILE ------- */
+/* These styles apply when the screen is smaller than 768 pixels wide (phones and tablets) */
+@media (max-width: 768px) {
+    /* Changes recipe grid to a single column on mobile */
+    .grid-4-col {
+        grid-template-columns: 1fr;      /* One column instead of four */
+        padding: 10px;                   /* Less padding on mobile */
+    }
+
+    /* Makes recipe content stack vertically */
+    .recipe-content {
+        flex-direction: column;          /* Stack content vertically */
+        width: 100%;                     /* Full width */
+    }
+
+    /* Makes image and details full width on mobile */
+    .recipe-image,
+    .recipe-details-container {
+        width: 100%;                     /* Full width on mobile */
+    }
+
+    /* Adjusts form container for mobile */
+    .form-container {
+        width: 100%;                     /* Full width form */
+        padding: 15px;                   /* Less padding on mobile */
+        max-width: none;                 /* No maximum width */
+    }
+
+    /* ------- MOBILE NAVIGATION ------- */
+    /* Navigation menu on mobile - hidden by default */
+    .nav-links {
+        display: none;                   /* Hidden until hamburger is clicked */
+        flex-direction: column;          /* Stack links vertically */
+        position: absolute;              /* Position over other content */
+        top: 60px;                       /* Position from top of screen */
+        right: 20px;                     /* Position from right of screen */
+        background-color: var(--red-color); /* Red background */
+        padding: 10px;                   /* Space inside the menu */
+        border-radius: 5px;              /* Rounded corners */
+        width: 200px;                    /* Width of the dropdown menu */
+    }
+
+    /* Space between navigation links on mobile */
+    .nav-links a {
+        margin: 10px 0;                  /* Space above and below each link */
+    }
+
+    /* Hamburger menu icon styling */
+    .nav-toggle {
+        display: block;                  /* Show on mobile */
+        cursor: pointer;                 /* Hand cursor on hover */
+        font-size: 24px;                 /* Size of the hamburger icon */
+        color: white;                    /* White color */
+    }
+
+    /* Shows the navigation menu when hamburger is clicked */
+    .nav-links.show {
+        display: flex;                   /* Shows the menu when .show class is added */
+    }
+}

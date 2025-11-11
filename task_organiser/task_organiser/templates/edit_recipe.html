@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Recipe - Filipino Recipes{% endblock %}
+
+{% block content %}
+<main class="recipe-content" role="main">
+    <div class="form-container">
+        <h1 id="form-heading">Edit Recipe</h1>
+
+        {% if error %}
+        <div class="form-error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form action="{{ url_for('edit_recipe', recipe_id=recipe.id) }}" method="post" id="recipe-form" aria-labelledby="form-heading" enctype="multipart/form-data">
+            <p class="sr-only">Use this form to update the selected recipe.</p>
+
+            <div class="form-group">
+                <label for="recipe-name">Recipe Name:</label>
+                <input type="text" id="recipe-name" name="recipe-name" required minlength="3" maxlength="50" aria-required="true" value="{{ recipe.name }}">
+                <span class="form-hint">Required. Enter 3-50 characters.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="recipe-desc">Description:</label>
+                <input type="text" id="recipe-desc" name="recipe-desc" required minlength="10" maxlength="200" aria-required="true" value="{{ recipe.short_description }}">
+                <span class="form-hint">Required. Provide a short description (10-200 characters).</span>
+            </div>
+
+            <div class="form-group">
+                <label for="ingredients">Ingredients:</label>
+                <textarea id="ingredients" name="ingredients" rows="5" required aria-required="true">{{ recipe.ingredients_text }}</textarea>
+                <span class="form-hint">Required. List each ingredient on a new line.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="directions">Directions:</label>
+                <textarea id="directions" name="directions" rows="5" required aria-required="true">{{ recipe.directions_text }}</textarea>
+                <span class="form-hint">Required. Provide clear step-by-step instructions.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="image-upload">Upload New Image (optional):</label>
+                <input type="file" id="image-upload" name="image-upload" accept="image/jpeg, image/png, image/webp" aria-describedby="image-hint">
+                <span id="image-hint" class="form-hint">Optional. Upload to replace the current image. Accepted formats: JPEG, PNG, WEBP. Max size: 5MB.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="recipe-category">Category:</label>
+                <select id="recipe-category" name="recipe-category" required aria-required="true">
+                    <option value="" disabled>Select a category</option>
+                    <option value="Main Course" {% if recipe.category == 'Main Course' %}selected{% endif %}>Main Course</option>
+                    <option value="Soup" {% if recipe.category == 'Soup' %}selected{% endif %}>Soup</option>
+                    <option value="Noodles" {% if recipe.category == 'Noodles' %}selected{% endif %}>Noodles</option>
+                    <option value="Special Occasion" {% if recipe.category == 'Special Occasion' %}selected{% endif %}>Special Occasion</option>
+                    <option value="Street Food" {% if recipe.category == 'Street Food' %}selected{% endif %}>Street Food</option>
+                    <option value="Dessert" {% if recipe.category == 'Dessert' %}selected{% endif %}>Dessert</option>
+                    <option value="Other" {% if recipe.category == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <span class="form-hint">Required. Select the most appropriate category.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="prep-time">Preparation Time:</label>
+                <input type="text" id="prep-time" name="prep-time" value="{{ recipe.prep_time }}" placeholder="e.g. 15 min">
+            </div>
+
+            <div class="form-group">
+                <label for="cook-time">Cooking Time:</label>
+                <input type="text" id="cook-time" name="cook-time" value="{{ recipe.cook_time }}" placeholder="e.g. 45 min">
+            </div>
+
+            <div class="form-group">
+                <label for="difficulty">Difficulty:</label>
+                <input type="text" id="difficulty" name="difficulty" value="{{ recipe.difficulty }}" placeholder="e.g. Easy">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn" aria-label="Save changes to this recipe">Save Changes</button>
+                <a href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}" class="btn" role="button" aria-label="Cancel and return to recipe details">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}
