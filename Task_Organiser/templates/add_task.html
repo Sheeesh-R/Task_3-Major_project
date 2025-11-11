@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Task{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h5 mb-0">Add New Task</h2>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('add_task') }}">
+            <div class="mb-3">
+              <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="title" name="title" required 
+                     value="{{ request.form.get('title', '') }}">
+            </div>
+            
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" name="description" 
+                        rows="3">{{ request.form.get('description', '') }}</textarea>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="due_date" class="form-label">Due Date</label>
+                <input type="date" class="form-control" id="due_date" name="due_date"
+                       value="{{ request.form.get('due_date', '') }}">
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select" id="priority" name="priority">
+                  <option value="high" {% if request.form.get('priority') == 'high' %}selected{% endif %}>High</option>
+                  <option value="medium" {% if not request.form.get('priority') or request.form.get('priority') == 'medium' %}selected{% endif %}>Medium</option>
+                  <option value="low" {% if request.form.get('priority') == 'low' %}selected{% endif %}>Low</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                  <option value="not_started" {% if not request.form.get('status') or request.form.get('status') == 'not_started' %}selected{% endif %}>Not Started</option>
+                  <option value="in_progress" {% if request.form.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                  <option value="completed" {% if request.form.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="category_id" class="form-label">Category</label>
+                <select class="form-select" id="category_id" name="category_id">
+                  <option value="">No Category</option>
+                  {% for category in categories %}
+                    <option value="{{ category.id }}" 
+                            {% if request.form.get('category_id')|string == category.id|string %}selected{% endif %}>
+                      {{ category.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <a href="{{ url_for('index') }}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+              </a>
+              <div class="action-buttons">
+                <button type="submit" class="btn-save">
+                  <i class="fas fa-save"></i> Save Task
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Set minimum date to today for due date
+  document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('due_date').min = today;
+  });
+</script>
+{% endblock %}
