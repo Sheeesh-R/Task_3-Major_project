@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, current_app
-from db import get_db, init_app
+from .db import get_db, init_app
 
 
 def create_app():
