@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}About - Filipino Recipes{% endblock %}
+
+{% block content %}
+<main class="recipe-content" role="main">
+    <img src="{{ url_for('static', filename='images/about.webp') }}" alt="About the Filipino Recipes project" class="recipe-image">
+
+    <div class="recipe-details-container">
+        <h1>About the Recipe Catalogue</h1>
+        <p>This Recipe Catalogue is a sample web development project for software engineering students. The design and functionality serve as a guide to understanding web technologies and UI/UX principles for responsive and user-friendly web applications.</p>
+
+        <h2>Tech Stack</h2>
+        <ul>
+            <li><strong>Frontend:</strong> HTML5, CSS (Flexbox &amp; Grid)</li>
+            <li><strong>Backend:</strong> Flask (Python)</li>
+            <li><strong>Database:</strong> JSON for data storage (extendable to SQL databases)</li>
+            <li><strong>Responsive Design:</strong> Media queries, CSS grid, and flexbox for layout optimisation across devices</li>
+        </ul>
+
+        <h2>Design Principles</h2>
+        <p>The UI/UX design follows modern web principles to ensure a seamless user experience. Key design considerations include:</p>
+        <ul>
+            <li>Easy-to-navigate interfaces</li>
+            <li>Minimalistic design for clarity and focus</li>
+            <li>Optimised user flows for efficient interactions</li>
+            <li>Accessibility for all users</li>
+        </ul>
+
+        <h2>Progressive Web Application</h2>
+        <p>This project will be developed as a <strong>Progressive Web Application (PWA)</strong>, enabling offline capabilities and an app-like experience. The Flask backend will handle the server-side logic, and client-side interactions will be managed using JavaScript.</p>
+
+        <h2>Project Goals</h2>
+        <p>This project teaches students the integration of various web development technologies, including:</p>
+        <ul>
+            <li>Building multi-page web applications using Flask</li>
+            <li>Creating a responsive UI with HTML, CSS, and JavaScript</li>
+            <li>Handling CRUD operations (Create, Read, Update, Delete) with JSON-based data</li>
+            <li>Documenting functionality using flowcharts and diagrams</li>
+            <li>Deploying the application on a live server (e.g., PythonAnywhere)</li>
+        </ul>
+    </div>
+</main>
+{% endblock %}
