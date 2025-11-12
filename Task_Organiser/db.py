@@ -22,13 +22,27 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
-    schema_path = current_app.config.get('SCHEMA_PATH', 'schema.sql')
-    with current_app.open_resource(schema_path) as f:
-        db.executescript(f.read().decode('utf-8'))
+    schema_path = os.path.join(current_app.root_path, current_app.config.get('SCHEMA_PATH', 'task_schema.sql'))
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        db.executescript(f.read())
 
 
 def init_app(app):
     app.teardown_appcontext(close_db)
+    
+    # Ensure the database directory exists
+    os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
+    
+    # Initialize the database if it doesn't exist
+    with app.app_context():
+        db = get_db()
+        try:
+            # Try to query the tasks table to see if it exists
+            db.execute('SELECT 1 FROM tasks LIMIT 1')
+        except sqlite3.OperationalError:
+            # If the query fails, initialize the database
+            init_db()
+            click.echo('Initialized the database.')
 
     @app.cli.command('init-db')
     def init_db_command():
