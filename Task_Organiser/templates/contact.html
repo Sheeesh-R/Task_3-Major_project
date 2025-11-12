@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Contact & Educational Guide - Filipino Recipes{% endblock %}
+
+{% block content %}
+<main class="recipe-content" role="main">
+    <img src="{{ url_for('static', filename='images/about.webp') }}" alt="Contact the Filipino Recipes team" class="recipe-image">
+
+    <div class="recipe-details-container">
+        <h1>How to Recreate This Website</h1>
+        <p>This guide provides step-by-step instructions for recreating this Filipino Recipes website, focusing on modern web development best practices.</p>
+
+        <h2>Core Web Technologies</h2>
+        <ul>
+            <li><strong>HTML5 Semantic Structure:</strong> Use semantic tags like <strong>&lt;header&gt;</strong>, <strong>&lt;nav&gt;</strong>, <strong>&lt;main&gt;</strong>, <strong>&lt;section&gt;</strong>, <strong>&lt;article&gt;</strong>, and <strong>&lt;footer&gt;</strong> to create a meaningful document outline that improves accessibility and SEO.</li>
+            <li><strong>CSS Layout Systems:</strong> Implement <strong>Flexbox</strong> for one-dimensional layouts and <strong>CSS Grid</strong> for two-dimensional layouts.</li>
+            <li><strong>Responsive Design:</strong> Use media queries and relative units to ensure the site works on all device sizes.</li>
+            <li><strong>Progressive Enhancement:</strong> Build the core functionality first, then add advanced features for modern browsers.</li>
+        </ul>
+
+        <h1>Pages and Component Structure</h1>
+
+        <h2>1. Index Page</h2>
+        <p><strong>Purpose:</strong> Display a responsive grid of recipe cards with clickable links to detailed recipe pages.</p>
+        <ul>
+            <li><strong>Header Component:</strong> Structured with <code>&lt;header class="header" role="banner"&gt;</code> containing a logo and navigation.</li>
+            <li><strong>Recipe Grid Component:</strong> Uses <code>&lt;main class="content grid-4-col" role="main"&gt;</code> with <code>&lt;article class="card"&gt;</code> items rendered from data.</li>
+        </ul>
+
+        <h2>2. Recipe Detail Page</h2>
+        <p><strong>Purpose:</strong> Display detailed information about a specific recipe with a responsive two-column layout.</p>
+        <ul>
+            <li><strong>Layout:</strong> <code>&lt;main class="recipe-content" role="main"&gt;</code> containing the recipe image and detailed content.</li>
+            <li><strong>Content:</strong> Includes title, description, ingredients, directions, and metadata like preparation time.</li>
+        </ul>
+
+        <h2>3. Add Recipe Page</h2>
+        <p><strong>Purpose:</strong> Provide an accessible form for submitting new recipes with validation feedback.</p>
+        <ul>
+            <li><strong>Form Structure:</strong> <code>&lt;form id="recipe-form" method="post"&gt;</code> with labelled inputs and ARIA hints.</li>
+            <li><strong>Validation:</strong> Client-side validation combined with server-side handling when integrated with Flask.</li>
+        </ul>
+
+        <h2>4. About Page</h2>
+        <p><strong>Purpose:</strong> Describe the project, its technical specifications, and educational value.</p>
+        <ul>
+            <li><strong>Content:</strong> Explains the tech stack, design principles, and goals for students building the project.</li>
+        </ul>
+
+        <h2>5. CSS Organization</h2>
+        <p>The CSS is organized into sections for variables, base styles, layout components, responsive adjustments, and accessibility helpers.</p>
+
+        <h2>6. JavaScript Functionality</h2>
+        <p>Enhances user experience with interactive features while maintaining accessibility, such as the mobile navigation toggle and planned form validation.</p>
+
+        <h2>7. Transitioning to Flask</h2>
+        <p>Move HTML files into the <code>templates/</code> folder, static assets into <code>static/</code>, replace static links with <code>{% raw %}{{ url_for('route_name') }}{% endraw %}</code>, and prepare for database-backed content.</p>
+    </div>
+</main>
+{% endblock %}
