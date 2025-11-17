@@ -241,28 +241,29 @@
       <!-- Filters -->
       <div class="card border-0 shadow-sm mb-3">
         <div class="card-body p-3">
-          <form method="get" class="row g-2 align-items-end">
-            <div class="col-md-4">
+          <!-- Filter controls -->
+          <div class="row g-2 align-items-center" id="filterForm">
+            <div class="col-md-3">
               <label for="status" class="form-label small text-muted mb-1">Status</label>
-              <select class="form-select form-select-sm" id="status" name="status" onchange="this.form.submit()">
+              <select class="form-select form-select-sm" id="status" name="status">
                 <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
                 <option value="not_started" {% if current_status == 'not_started' %}selected{% endif %}>Not Started</option>
                 <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
                 <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="priority" class="form-label small text-muted mb-1">Priority</label>
-              <select class="form-select form-select-sm" id="priority" name="priority" onchange="this.form.submit()">
+              <select class="form-select form-select-sm" id="priority" name="priority">
                 <option value="all" {% if current_priority == 'all' %}selected{% endif %}>All Priorities</option>
                 <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
                 <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
                 <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="category" class="form-label small text-muted mb-1">Category</label>
-              <select class="form-select form-select-sm" id="category" name="category" onchange="this.form.submit()">
+              <select class="form-select form-select-sm" id="category" name="category">
                 <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
                 {% for category in categories %}
                   <option value="{{ category.id }}" {% if current_category|string == category.id|string %}selected{% endif %}>
@@ -271,14 +272,24 @@
                 {% endfor %}
               </select>
             </div>
-          </form>
+            <div class="col-md-3">
+              <div class="d-flex flex-column gap-1">
+                <button type="button" id="applyFiltersBtn" class="btn btn-primary btn-sm w-100">
+                  <i class="fas fa-filter me-1"></i> Apply
+                </button>
+                <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm w-100">
+                  <i class="fas fa-times me-1"></i> Clear
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- Compact Overview Cards -->
       <div class="row g-2">
         <div class="col-3">
-          <div class="card bg-primary bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'all' %}active-filter{% endif %}" data-filter="all" style="cursor: pointer; transition: all 0.2s;">
+          <div class="card bg-primary bg-opacity-10 border-0 h-100 filter-card" data-status="all" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.2s;" onclick="setFilterFromCard(this)">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -293,7 +304,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-warning bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'upcoming' %}active-filter{% endif %}" data-filter="upcoming" style="cursor: pointer; transition: all 0.2s;">
+          <div class="card bg-warning bg-opacity-10 border-0 h-100 filter-card" data-status="not_started,in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.2s;" onclick="setFilterFromCard(this)">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -308,7 +319,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-success bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'completed' %}active-filter{% endif %}" data-filter="completed" style="cursor: pointer; transition: all 0.2s;">
+          <div class="card bg-success bg-opacity-10 border-0 h-100 filter-card" data-status="completed" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.2s;" onclick="setFilterFromCard(this)">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -323,7 +334,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-info bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'in_progress' %}active-filter{% endif %}" data-filter="in_progress" style="cursor: pointer; transition: all 0.2s;">
+          <div class="card bg-info bg-opacity-10 border-0 h-100 filter-card" data-status="in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.2s;" onclick="setFilterFromCard(this)">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -380,13 +391,32 @@
 
   <!-- Task List -->
   <div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h5 mb-0">My Tasks</h2>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-sort me-1"></i> Sort by
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+          <li><a class="dropdown-item sort-option" href="#" data-sort="due_date">Due Date (Earliest First)</a></li>
+          <li><a class="dropdown-item sort-option" href="#" data-sort="-due_date">Due Date (Latest First)</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item sort-option" href="#" data-sort="priority">Priority (High to Low)</a></li>
+          <li><a class="dropdown-item sort-option" href="#" data-sort="-priority">Priority (Low to High)</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item sort-option" href="#" data-sort="title">Title (A-Z)</a></li>
+          <li><a class="dropdown-item sort-option" href="#" data-sort="-title">Title (Z-A)</a></li>
+        </ul>
+      </div>
+    </div>
+    
     {% if tasks %}
       <div id="hidden-tasks-info" class="text-muted small mb-2" style="display: none;">
         <i class="fas fa-eye-slash me-1"></i> Hidden: <span id="hidden-tasks-count">0</span> completed task(s)
       </div>
       <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="task-container">
         {% for task in tasks %}
-          <div class="col task-item" data-status="{{ task.status }}" data-due-date="{{ task.due_date }}">
+          <div class="col task-item" data-status="{{ task.status }}" data-due-date="{{ task.due_date }}" data-priority="{{ task.priority }}">
             <div class="card h-100 shadow-sm border-0">
               <div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -486,6 +516,53 @@
   {% block scripts %}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Sort tasks function
+      function sortTasks(sortBy) {
+        const taskContainer = document.getElementById('task-container');
+        const tasks = Array.from(document.querySelectorAll('.task-item'));
+        
+        tasks.sort((a, b) => {
+          let aValue, bValue;
+          
+          // Handle different sort criteria
+          if (sortBy === 'due_date' || sortBy === '-due_date') {
+            aValue = new Date(a.getAttribute('data-due-date') || '9999-12-31');
+            bValue = new Date(b.getAttribute('data-due-date') || '9999-12-31');
+            return sortBy === 'due_date' ? aValue - bValue : bValue - aValue;
+          } 
+          else if (sortBy === 'priority' || sortBy === '-priority') {
+            const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1, '': 0 };
+            aValue = priorityOrder[a.getAttribute('data-priority') || ''];
+            bValue = priorityOrder[b.getAttribute('data-priority') || ''];
+            return sortBy === 'priority' ? bValue - aValue : aValue - bValue;
+          } 
+          else if (sortBy === 'title' || sortBy === '-title') {
+            aValue = a.querySelector('.card-title').textContent.trim().toLowerCase();
+            bValue = b.querySelector('.card-title').textContent.trim().toLowerCase();
+            return sortBy === 'title' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+          }
+          return 0;
+        });
+        
+        // Re-append tasks in new order
+        tasks.forEach(task => task.remove());
+        tasks.forEach(task => taskContainer.appendChild(task));
+      }
+      
+      // Add click handlers for sort options
+      document.querySelectorAll('.sort-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+          e.preventDefault();
+          const sortBy = this.getAttribute('data-sort');
+          sortTasks(sortBy);
+          // Update dropdown text
+          document.getElementById('sortDropdown').innerHTML = 
+            `<i class="fas fa-sort-${sortBy.startsWith('-') ? 'down' : 'up'}-alt me-1"></i> ${this.textContent}`;
+        });
+      });
+      
+      // Initialize with default sort (due date, earliest first)
+      sortTasks('due_date');
       // Hide completed tasks by default and count them
       const taskItems = document.querySelectorAll('.task-item');
       let completedCount = 0;
@@ -570,6 +647,64 @@
             }
           }
         });
+      });
+      
+      // Handle filter card clicks
+      document.querySelectorAll('.filter-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const status = this.getAttribute('data-status');
+          const priority = this.getAttribute('data-priority');
+          const category = this.getAttribute('data-category');
+          
+          // Update form values
+          if (status) document.getElementById('status').value = status;
+          if (priority) document.getElementById('priority').value = priority;
+          if (category) document.getElementById('category').value = category;
+          
+          // Update active state of cards
+          document.querySelectorAll('.filter-card').forEach(c => {
+            c.classList.remove('active-filter');
+          });
+          this.classList.add('active-filter');
+        });
+      });
+      
+      // Handle filter form submission when Apply Filters button is clicked
+      // Function to apply filters
+      function applyFilters() {
+        // Get current filter values
+        const status = document.getElementById('status').value;
+        const priority = document.getElementById('priority').value;
+        const category = document.getElementById('category').value;
+        
+        const params = new URLSearchParams();
+        
+        // Add parameters if they're not 'all'
+        if (status && status !== 'all') params.set('status', status);
+        if (priority && priority !== 'all') params.set('priority', priority);
+        if (category && category !== 'all') params.set('category', category);
+        
+        // Update URL and refresh the page
+        window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      }
+      
+      // Handle apply filters button click
+      document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+      
+      // Handle clear filters button click
+      document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        // Reset all dropdowns to 'all'
+        document.getElementById('status').value = 'all';
+        document.getElementById('priority').value = 'all';
+        document.getElementById('category').value = 'all';
+        
+        // Remove active class from all filter cards
+        document.querySelectorAll('.filter-card').forEach(card => {
+          card.classList.remove('active-filter');
+        });
+        
+        // Apply the cleared filters immediately
+        applyFilters();
       });
       
       // Filter tasks based on status
