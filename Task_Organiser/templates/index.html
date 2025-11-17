@@ -21,7 +21,7 @@
     height: 24px;
     border-radius: 50%;
     border: 2px solid #dee2e6;
-    background: transparent;
+    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -29,10 +29,10 @@
     transition: all 0.2s ease;
     color: transparent;
   }
-  
+
   .task-toggle:hover {
-    border-color: #6c757d;
-    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
   .task-toggle.completed {
@@ -42,8 +42,9 @@
   }
   
   .task-toggle i {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
+  /* Button styles for all action buttons */
   .btn-action {
     width: 32px;
     height: 32px;
@@ -52,34 +53,61 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-    margin: 0 2px;
+    margin: 0 3px;
     transition: all 0.2s ease;
-    border: none;
-    background: transparent;
+    border: 2px solid #dee2e6;
+    background: white;
     color: #6c757d;
+    font-size: 0.9rem;
   }
-  
-  .btn-edit {
-    border: 2px solid #dee2e6;
-  }
-  
-  .btn-delete {
-    border: 2px solid #dee2e6;
-  }
-  
+
   .btn-action:hover {
-    background-color: #f8f9fa;
-    color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
-  
-  .btn-delete:hover {
+
+  .btn-action:active {
+    transform: translateY(0);
+  }
+
+  .btn-edit {
+    color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .btn-edit:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  .btn-delete {
     color: #dc3545;
     border-color: #dc3545;
   }
-  
-  .btn-edit:hover {
-    color: #0d6efd;
-    border-color: #0d6efd;
+
+  .btn-delete:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-save {
+    color: #198754;
+    border-color: #198754;
+  }
+
+  .btn-save:hover {
+    background-color: #198754;
+    color: white;
+  }
+
+  .btn-add {
+    color: #0dcaf0;
+    border-color: #0dcaf0;
+  }
+
+  .btn-add:hover {
+    background-color: #0dcaf0;
+    color: white;
   }
   .btn-group-sm > .btn {
     padding: 0.4rem 0.6rem;
@@ -142,6 +170,12 @@
     box-shadow: 0 0 0 2px #fff, 0 0 0 3px #6da7ff;
   }
 
+  /* For today's date with tasks */
+  .calendar-day.today.has-tasks {
+    background-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px #dc3545 !important;
+  }
+
   .calendar-day.has-task::after {
     content: '';
     position: absolute;
@@ -154,23 +188,42 @@
     border-radius: 50%;
   }
 
+  /* Hide the dot for today's date since we're highlighting the whole circle */
+  .calendar-day.today.has-tasks::after {
+    display: none;
+  }
+
   .calendar-day.other-month {
     color: #dee2e6;
     pointer-events: none;
   }
-</style>
-<style>
-  .category-badge {
-    background-color: var(--category-color, #6c757d);
-    color: #fff;
-    padding: 0.35em 0.65em;
-    font-size: 0.75em;
-    font-weight: 700;
-    line-height: 1;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
+
+  .task-due-date {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  
+  .task-due-date::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: #0d6efd; /* Default blue color for future dates */
+  }
+  
+  .task-due-date.due-today::before {
+    background-color: #dc3545; /* Red color for today's tasks */
   }
 </style>
   <!-- Page Header -->
@@ -225,7 +278,7 @@
       <!-- Compact Overview Cards -->
       <div class="row g-2">
         <div class="col-3">
-          <div class="card bg-primary bg-opacity-10 border-0 h-100">
+          <div class="card bg-primary bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'all' %}active-filter{% endif %}" data-filter="all" style="cursor: pointer; transition: all 0.2s;">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -240,7 +293,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-warning bg-opacity-10 border-0 h-100">
+          <div class="card bg-warning bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'upcoming' %}active-filter{% endif %}" data-filter="upcoming" style="cursor: pointer; transition: all 0.2s;">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -255,7 +308,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-success bg-opacity-10 border-0 h-100">
+          <div class="card bg-success bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'completed' %}active-filter{% endif %}" data-filter="completed" style="cursor: pointer; transition: all 0.2s;">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -270,7 +323,7 @@
           </div>
         </div>
         <div class="col-3">
-          <div class="card bg-info bg-opacity-10 border-0 h-100">
+          <div class="card bg-info bg-opacity-10 border-0 h-100 filter-card {% if current_filter == 'in_progress' %}active-filter{% endif %}" data-filter="in_progress" style="cursor: pointer; transition: all 0.2s;">
             <div class="card-body py-2 px-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -278,7 +331,7 @@
                   <h5 class="mb-0">{{ tasks|selectattr('status', '==', 'in_progress')|list|length }}</h5>
                 </div>
                 <div class="bg-info bg-opacity-25 p-2 rounded-circle">
-                  <i class="fas fa-sync-alt text-info"></i>
+                  <i class="fas fa-spinner text-info"></i>
                 </div>
               </div>
             </div>
@@ -328,9 +381,12 @@
   <!-- Task List -->
   <div class="container-fluid mt-4">
     {% if tasks %}
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      <div id="hidden-tasks-info" class="text-muted small mb-2" style="display: none;">
+        <i class="fas fa-eye-slash me-1"></i> Hidden: <span id="hidden-tasks-count">0</span> completed task(s)
+      </div>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="task-container">
         {% for task in tasks %}
-          <div class="col">
+          <div class="col task-item" data-status="{{ task.status }}" data-due-date="{{ task.due_date }}">
             <div class="card h-100 shadow-sm border-0">
               <div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -385,33 +441,222 @@
         {% endfor %}
       </div>
     {% else %}
-    <div class="text-center py-5 my-5" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white;">
+    <div class="text-center py-5 my-5" id="no-tasks-msg" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white; display: none;">
       <div class="mb-4">
         <i class="fas fa-check-circle text-muted" style="font-size: 4rem;"></i>
       </div>
       <h3>No tasks found</h3>
-      <p>Get started by adding a new task</p>
+      <p>No tasks match the current filter</p>
       <div class="mt-4">
-        <a href="{{ url_for('add_task') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm" 
-           style="transition: all 0.3s ease; border-radius: 25px;">
-          <i class="fas fa-plus-circle me-2"></i> Add Your First Task
-        </a>
+        <button class="btn btn-light" onclick="filterTasks('all')">
+          Show All Tasks
+        </button>
+      </div>
+    </div>
+    <div id="no-tasks-original" style="display: none;">
+      <div class="text-center py-5 my-5" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white;">
+        <div class="mb-4">
+          <i class="fas fa-check-circle text-muted" style="font-size: 4rem;"></i>
+        </div>
+        <h3>No tasks found</h3>
+        <p>Get started by adding a new task</p>
+        <div class="mt-4">
+          <a href="{{ url_for('add_task') }}" class="btn btn-action btn-add" title="Add New Task">
+            <i class="fas fa-plus"></i>
+          </a>
+        </div>
       </div>
     </div>
   {% endif %}
 
+  <style>
+    .filter-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .filter-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .filter-card.active-filter {
+      border: 2px solid #0d6efd !important;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+  </style>
+  
   {% block scripts %}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Hide completed tasks by default and count them
+      const taskItems = document.querySelectorAll('.task-item');
+      let completedCount = 0;
+      
+      taskItems.forEach(task => {
+        const status = task.getAttribute('data-status');
+        if (status === 'completed') {
+          task.style.display = 'none';
+          completedCount++;
+        }
+      });
+      
+      // Update the hidden tasks counter
+      const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
+      const hiddenTasksCount = document.getElementById('hidden-tasks-count');
+      
+      // Only show the hidden tasks message on the home page with no active filters
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentFilter = urlParams.get('filter');
+      
+      if (completedCount > 0 && !currentFilter) {
+        hiddenTasksInfo.style.display = 'block';
+        hiddenTasksCount.textContent = completedCount;
+      } else {
+        hiddenTasksInfo.style.display = 'none';
+      }
+      
       // Get all task due dates
       const taskDateElements = document.querySelectorAll('.task-due-date');
       const taskDates = [];
       
-      taskDateElements.forEach(el => {
-        const dateStr = el.getAttribute('data-due-date');
+      // Handle filter clicks
+      const filterCards = document.querySelectorAll('.filter-card');
+      const upcomingCard = document.querySelector('.filter-card[data-filter="upcoming"]');
+      const originalUpcomingCount = upcomingCard ? upcomingCard.querySelector('h5').textContent : '0';
+      
+      filterCards.forEach(card => {
+        card.addEventListener('click', function() {
+          const filter = this.getAttribute('data-filter');
+          updateUrlParameter('filter', filter);
+          filterTasks(filter);
+          
+          // Update active state and reset all cards to their original state
+          filterCards.forEach(c => {
+            c.classList.remove('active-filter');
+            // Reset upcoming card text if it's not the active card
+            if (c.getAttribute('data-filter') === 'upcoming' && filter !== 'upcoming') {
+              const countElement = c.querySelector('h5');
+              countElement.textContent = originalUpcomingCount;
+            }
+          });
+          
+          // Always hide the hidden tasks message when any filter is clicked
+          const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
+          hiddenTasksInfo.style.display = 'none';
+          this.classList.add('active-filter');
+          
+          // Update the upcoming count display
+          if (filter === 'upcoming') {
+            const taskItems = document.querySelectorAll('.task-item');
+            
+            // Count incomplete tasks (including those without due dates)
+            const incompleteCount = Array.from(taskItems).filter(task => {
+              const status = task.getAttribute('data-status');
+              // Count all incomplete tasks, regardless of due date
+              return status !== 'completed';
+            }).length;
+            
+            const completeCount = Array.from(taskItems).filter(task => {
+              return task.getAttribute('data-status') === 'completed';
+            }).length;
+            
+            const upcomingCountElement = this.querySelector('h5');
+            if (incompleteCount > 0 && completeCount > 0) {
+              upcomingCountElement.textContent = `${incompleteCount} incomplete, ${completeCount} complete`;
+            } else if (incompleteCount > 0) {
+              upcomingCountElement.textContent = `${incompleteCount} incomplete`;
+            } else if (completeCount > 0) {
+              upcomingCountElement.textContent = `${completeCount} complete`;
+            } else {
+              upcomingCountElement.textContent = '0';
+            }
+          }
+        });
+      });
+      
+      // Filter tasks based on status
+      function filterTasks(filter) {
+        const taskItems = document.querySelectorAll('.task-item');
+        let hasVisibleTasks = false;
+        
+        // If no filter is active, default to hiding completed tasks
+        if (!filter || filter === 'all') {
+          filter = 'incomplete';
+          // Update the active filter UI
+          document.querySelectorAll('.filter-card').forEach(card => {
+            card.classList.remove('active-filter');
+            if (card.getAttribute('data-filter') === 'all') {
+              card.classList.add('active-filter');
+            }
+          });
+        }
+        
+        taskItems.forEach(task => {
+          const status = task.getAttribute('data-status');
+          const dueDate = task.getAttribute('data-due-date');
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const taskDate = dueDate ? new Date(dueDate) : null;
+          if (taskDate) taskDate.setHours(0, 0, 0, 0);
+          
+          let shouldShow = true;
+          
+          // Default filter (when 'all' is selected) - hide completed tasks
+          if (filter === 'all') {
+            shouldShow = status !== 'completed';
+          }
+          
+          switch(filter) {
+            case 'upcoming':
+              // Show all tasks for 'upcoming' regardless of completion status
+              shouldShow = true;
+              break;
+            case 'completed':
+              shouldShow = status === 'completed';
+              break;
+            case 'in_progress':
+              shouldShow = status === 'in_progress';
+              break;
+            case 'all':
+            default:
+              shouldShow = true;
+          }
+          
+          task.style.display = shouldShow ? 'block' : 'none';
+          if (shouldShow) hasVisibleTasks = true;
+        });
+        
+        // Show/hide no tasks message
+        const noTasksMsg = document.getElementById('no-tasks-msg');
+        if (noTasksMsg) {
+          noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
+        }
+      }
+      
+      // Helper function to update URL parameters
+      function updateUrlParameter(key, value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set(key, value);
+        window.history.pushState({}, '', url);
+      }
+      
+      // Helper function to check if a date is today
+      function isToday(date) {
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+               date.getMonth() === today.getMonth() &&
+               date.getFullYear() === today.getFullYear();
+      }
+
+      // Process task due dates
+      taskDateElements.forEach(function(element) {
+        const dateStr = element.getAttribute('data-due-date');
         if (dateStr) {
-          const date = new Date(dateStr);
-          taskDates.push(date.toDateString());
+          const dueDate = new Date(dateStr);
+          if (!isNaN(dueDate.getTime())) {  // Check if date is valid
+            taskDates.push(dueDate.toDateString());
+            if (isToday(dueDate)) {
+              element.classList.add('due-today');
+            }
+          }
         }
       });
 
@@ -422,7 +667,13 @@
       const nextBtn = document.getElementById('next-month');
       const todayBtn = document.getElementById('today');
       
+      // Initialize current date
       let currentDate = new Date();
+      
+      // Make sure we have a valid date
+      if (isNaN(currentDate.getTime())) {
+        currentDate = new Date();  // Fallback to current date if invalid
+      }
       
       // Render calendar
       function renderCalendar() {
@@ -451,7 +702,31 @@
         // Add days of current month
         for (let i = 1; i <= lastDay.getDate(); i++) {
           const dayElement = document.createElement('div');
+          const currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
           dayElement.className = 'calendar-day';
+          
+          // Highlight today's date
+          if (isToday(currentDay)) {
+            dayElement.classList.add('today');
+          }
+          
+          // Check if this date has tasks
+          const dateStr = currentDay.toDateString();
+          const hasTasks = taskDates.includes(dateStr);
+          
+          if (hasTasks) {
+            if (isToday(currentDay)) {
+              // For today with tasks, add a class to highlight the entire date
+              dayElement.classList.add('has-tasks');
+            } else {
+              // For other dates with tasks, show the blue dot
+              const dot = document.createElement('span');
+              dot.className = 'calendar-dot';
+              dayElement.appendChild(document.createElement('br'));
+              dayElement.appendChild(dot);
+            }
+          }
+          
           dayElement.textContent = i;
           
           // Create date object for this day
