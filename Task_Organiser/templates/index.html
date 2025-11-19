@@ -471,27 +471,15 @@
         {% endfor %}
       </div>
     {% else %}
-    <div class="text-center py-5 my-5" id="no-tasks-msg" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white; display: none;">
+    <div class="text-center py-5 my-5" id="no-tasks-msg" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white;">
       <div class="mb-4">
         <i class="fas fa-check-circle text-muted" style="font-size: 4rem;"></i>
       </div>
-      <h3>No tasks found</h3>
-      <p>No tasks match the current filter</p>
+      <h3>No tasks yet</h3>
+      <p>Get started by adding your first task</p>
       <div class="mt-4">
-        <button class="btn btn-light" onclick="filterTasks('all')">
-          Show All Tasks
-        </button>
-      </div>
-    </div>
-    <div id="no-tasks-original" class="text-center py-5 my-5" style="background-color: #6da7ff; padding: 2rem; border-radius: 10px; color: white; display: block;">
-      <div class="mb-4">
-        <i class="fas fa-check-circle text-muted" style="font-size: 4rem;"></i>
-      </div>
-      <h3>No tasks found</h3>
-      <p>Get started by adding a new task</p>
-      <div class="mt-4">
-        <a href="{{ url_for('add_task') }}" class="btn btn-light" title="Add New Task">
-          <i class="fas fa-plus me-2"></i> Add New Task
+        <a href="{{ url_for('add_task') }}" class="btn btn-light">
+          <i class="fas fa-plus me-2"></i>Add New Task
         </a>
       </div>
     </div>
@@ -514,28 +502,6 @@
   {% block scripts %}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Check for tasks on page load
-      function checkForTasks() {
-        const taskContainer = document.getElementById('task-container');
-        const noTasksMsg = document.getElementById('no-tasks-msg');
-        const noTasksOriginal = document.getElementById('no-tasks-original');
-        
-        if (taskContainer && taskContainer.children.length === 0) {
-          // No tasks at all
-          if (noTasksOriginal) noTasksOriginal.style.display = 'block';
-          if (noTasksMsg) noTasksMsg.style.display = 'none';
-        } else {
-          // Tasks exist, check if any are visible
-          const visibleTasks = document.querySelectorAll('.task-item[style*="display: block"], .task-item:not([style*="display: none"])');
-          if (visibleTasks.length === 0 && noTasksMsg) {
-            noTasksMsg.style.display = 'block';
-          }
-          if (noTasksOriginal) noTasksOriginal.style.display = 'none';
-        }
-      }
-      
-      // Run the check when the page loads
-      checkForTasks();
       // Sort tasks function
       function sortTasks(sortBy) {
         const taskContainer = document.getElementById('task-container');
@@ -779,19 +745,10 @@
           if (shouldShow) hasVisibleTasks = true;
         });
         
-        // Show/hide no tasks messages
+        // Show/hide no tasks message
         const noTasksMsg = document.getElementById('no-tasks-msg');
-        const noTasksOriginal = document.getElementById('no-tasks-original');
-        const taskContainer = document.getElementById('task-container');
-        
-        if (taskContainer && taskContainer.children.length === 0) {
-          // If there are no tasks at all (not just filtered out)
-          if (noTasksOriginal) noTasksOriginal.style.display = 'block';
-          if (noTasksMsg) noTasksMsg.style.display = 'none';
-        } else {
-          // If there are tasks but none match the current filter
-          if (noTasksMsg) noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
-          if (noTasksOriginal) noTasksOriginal.style.display = 'none';
+        if (noTasksMsg) {
+          noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
         }
       }
       
