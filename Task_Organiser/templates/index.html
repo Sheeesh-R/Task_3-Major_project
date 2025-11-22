@@ -273,15 +273,17 @@
               </select>
             </div>
             <div class="col-md-3">
-              <div class="d-flex flex-column gap-1">
-                <button type="button" id="applyFiltersBtn" class="btn btn-primary btn-sm w-100">
-                  <i class="fas fa-filter me-1"></i> Apply
+              <label class="form-label small text-muted mb-1">&nbsp;</label>
+              <div class="d-flex flex-column gap-2">
+                <button type="button" class="btn btn-primary btn-sm w-100" id="applyFilters">
+                  <i class="fas fa-check me-1"></i>Apply
                 </button>
-                <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm w-100">
-                  <i class="fas fa-times me-1"></i> Clear
+                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+                  <i class="fas fa-times me-1"></i>Clear
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -655,43 +657,115 @@
         });
       });
       
-      // Handle filter form submission when Apply Filters button is clicked
-      // Function to apply filters
-      function applyFilters() {
-        // Get current filter values
+      // Apply Filters button functionality
+      document.getElementById('applyFilters').addEventListener('click', function() {
         const status = document.getElementById('status').value;
         const priority = document.getElementById('priority').value;
         const category = document.getElementById('category').value;
         
-        const params = new URLSearchParams();
+        // Filter tasks based on selected criteria
+        const taskItems = document.querySelectorAll('.task-item');
+        let hasVisibleTasks = false;
         
-        // Add parameters if they're not 'all'
-        if (status && status !== 'all') params.set('status', status);
-        if (priority && priority !== 'all') params.set('priority', priority);
-        if (category && category !== 'all') params.set('category', category);
+        taskItems.forEach(task => {
+          const taskStatus = task.getAttribute('data-status');
+          const taskPriority = task.getAttribute('data-priority');
+          const taskCategory = task.getAttribute('data-category');
+          
+          let shouldShow = true;
+          
+          // Check status filter
+          if (status !== 'all') {
+            if (status.includes(',')) {
+              // Handle multiple statuses (like "not_started,in_progress")
+              const statuses = status.split(',');
+              shouldShow = shouldShow && statuses.includes(taskStatus);
+            } else {
+              shouldShow = shouldShow && (taskStatus === status);
+            }
+          }
+          
+          // Check priority filter
+          if (priority !== 'all') {
+            shouldShow = shouldShow && (taskPriority === priority);
+          }
+          
+          // Check category filter
+          if (category !== 'all') {
+            shouldShow = shouldShow && (taskCategory === category);
+          }
+          
+          task.style.display = shouldShow ? 'block' : 'none';
+          if (shouldShow) hasVisibleTasks = true;
+        });
         
-        // Update URL and refresh the page
-        window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-      }
+        // Show/hide no tasks message
+        const noTasksMsg = document.getElementById('no-tasks-msg');
+        if (noTasksMsg) {
+          noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
+        }
+        
+        // Hide hidden tasks info when filters are applied
+        const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
+        if (hiddenTasksInfo) {
+          hiddenTasksInfo.style.display = 'none';
+        }
+        
+        // Update active state of filter cards
+        document.querySelectorAll('.filter-card').forEach(card => {
+          card.classList.remove('active-filter');
+        });
+      });
       
-      // Handle apply filters button click
-      document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
-      
-      // Handle clear filters button click
-      document.getElementById('clearFiltersBtn').addEventListener('click', function() {
-        // Reset all dropdowns to 'all'
+      // Clear Filters button functionality
+      document.getElementById('clearFilters').addEventListener('click', function() {
+        // Reset all filter selects to 'all'
         document.getElementById('status').value = 'all';
         document.getElementById('priority').value = 'all';
         document.getElementById('category').value = 'all';
         
-        // Remove active class from all filter cards
+        // Show all tasks except completed ones (default behavior)
+        const taskItems = document.querySelectorAll('.task-item');
+        let hasVisibleTasks = false;
+        let completedCount = 0;
+        
+        taskItems.forEach(task => {
+          const status = task.getAttribute('data-status');
+          if (status === 'completed') {
+            task.style.display = 'none';
+            completedCount++;
+          } else {
+            task.style.display = 'block';
+            hasVisibleTasks = true;
+          }
+        });
+        
+        // Show/hide no tasks message
+        const noTasksMsg = document.getElementById('no-tasks-msg');
+        if (noTasksMsg) {
+          noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
+        }
+        
+        // Update hidden tasks counter
+        const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
+        const hiddenTasksCount = document.getElementById('hidden-tasks-count');
+        
+        if (completedCount > 0) {
+          hiddenTasksInfo.style.display = 'block';
+          hiddenTasksCount.textContent = completedCount;
+        } else {
+          hiddenTasksInfo.style.display = 'none';
+        }
+        
+        // Reset active state of filter cards
         document.querySelectorAll('.filter-card').forEach(card => {
           card.classList.remove('active-filter');
         });
-        
-        // Apply the cleared filters immediately
-        applyFilters();
       });
+      
+
+      
+
       
       // Filter tasks based on status
       function filterTasks(filter) {
