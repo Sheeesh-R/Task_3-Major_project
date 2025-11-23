@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}About - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-tasks text-primary fs-2"></i>
+                    </div>
+                    <h1 class="display-5 fw-bold mb-3">About Student Task Manager</h1>
+                    <p class="lead text-muted">A comprehensive task management solution designed specifically for students</p>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-graduation-cap text-success"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Built for Students</h5>
+                                <p class="text-muted mb-0">Designed with the unique needs of students in mind, helping you balance coursework, assignments, and personal tasks.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-chart-line text-info"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Track Progress</h5>
+                                <p class="text-muted mb-0">Monitor your productivity with intuitive status tracking and priority management for all your tasks.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-calendar-alt text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Stay Organized</h5>
+                                <p class="text-muted mb-0">Keep track of due dates, categorize tasks by subject, and never miss an important deadline again.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-mobile-alt text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-2">Access Anywhere</h5>
+                                <p class="text-muted mb-0">Web-based design means you can access your tasks from any device with an internet connection.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-light rounded-3 p-4 mb-4">
+                    <h4 class="mb-3">Key Features</h4>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Task Management:</strong> Create, edit, and delete tasks with ease
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Priority Levels:</strong> Set task priorities (High, Medium, Low) to focus on what matters most
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Status Tracking:</strong> Monitor task progress (Not Started, In Progress, Completed)
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Due Date Management:</strong> Never miss deadlines with integrated calendar view
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Category Organization:</strong> Group tasks by subject or project
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>User Authentication:</strong> Secure login system to keep your tasks private
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="text-center">
+                    <h4 class="mb-3">Get Started Today</h4>
+                    <p class="text-muted mb-4">Join thousands of students who are already organizing their academic life more effectively.</p>
+                    {% if not g.user %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                                <i class="fas fa-user-plus me-2"></i>Sign Up Free
+                            </a>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-tasks me-2"></i>Go to Dashboard
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                <i class="fas fa-code me-1"></i>
+                Built with Flask, Bootstrap, and care for students everywhere
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

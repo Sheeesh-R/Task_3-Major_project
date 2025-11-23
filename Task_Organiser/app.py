@@ -302,15 +302,33 @@ def register_routes(app):
 
         return redirect(url_for('index'))
 
-    # Simple about page
+    # About page
     @app.route('/about')
     def about():
-        return "<h1>About Student Task Manager</h1><p>A simple task management application for students to organize their workload.</p>"
+        return render_template('about.html')
 
-    # Simple contact page
-    @app.route('/contact')
+    # Contact page
+    @app.route('/contact', methods=['GET', 'POST'])
     def contact():
-        return "<h1>Contact</h1><p>For support, please contact the application administrator.</p>"
+        if request.method == 'POST':
+            # Get form data
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip()
+            subject = request.form.get('subject', '').strip()
+            message = request.form.get('message', '').strip()
+            
+            # Basic validation
+            if not name or not email or not subject or not message:
+                flash('All fields are required.', 'error')
+            elif '@' not in email or '.' not in email:
+                flash('Please enter a valid email address.', 'error')
+            else:
+                # In a real application, you would send an email here
+                # For now, we'll just show a success message
+                flash('Thank you for your message! We\'ll get back to you soon.', 'success')
+                return redirect(url_for('contact'))
+        
+        return render_template('contact.html')
 
 
 app = create_app()

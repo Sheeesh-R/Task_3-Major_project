@@ -1,60 +1,154 @@
 {% extends "base.html" %}
 
-{% block title %}Contact & Educational Guide - Filipino Recipes{% endblock %}
+{% block title %}Contact - Task Manager{% endblock %}
 
 {% block content %}
-<main class="recipe-content" role="main">
-    <img src="{{ url_for('static', filename='images/about.webp') }}" alt="Contact the Filipino Recipes team" class="recipe-image">
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-envelope text-primary fs-2"></i>
+                    </div>
+                    <h1 class="display-5 fw-bold mb-3">Contact Us</h1>
+                    <p class="lead text-muted">Get in touch with the Student Task Manager team</p>
+                </div>
 
-    <div class="recipe-details-container">
-        <h1>How to Recreate This Website</h1>
-        <p>This guide provides step-by-step instructions for recreating this Filipino Recipes website, focusing on modern web development best practices.</p>
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-envelope text-info fs-4"></i>
+                            </div>
+                            <h5 class="mb-2">Email Support</h5>
+                            <p class="text-muted small mb-0">support@taskmanager.edu</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-comments text-success fs-4"></i>
+                            </div>
+                            <h5 class="mb-2">Live Chat</h5>
+                            <p class="text-muted small mb-0">Available Mon-Fri 9AM-5PM</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-bug text-warning fs-4"></i>
+                            </div>
+                            <h5 class="mb-2">Bug Reports</h5>
+                            <p class="text-muted small mb-0">github.com/taskmanager/issues</p>
+                        </div>
+                    </div>
+                </div>
 
-        <h2>Core Web Technologies</h2>
-        <ul>
-            <li><strong>HTML5 Semantic Structure:</strong> Use semantic tags like <strong>&lt;header&gt;</strong>, <strong>&lt;nav&gt;</strong>, <strong>&lt;main&gt;</strong>, <strong>&lt;section&gt;</strong>, <strong>&lt;article&gt;</strong>, and <strong>&lt;footer&gt;</strong> to create a meaningful document outline that improves accessibility and SEO.</li>
-            <li><strong>CSS Layout Systems:</strong> Implement <strong>Flexbox</strong> for one-dimensional layouts and <strong>CSS Grid</strong> for two-dimensional layouts.</li>
-            <li><strong>Responsive Design:</strong> Use media queries and relative units to ensure the site works on all device sizes.</li>
-            <li><strong>Progressive Enhancement:</strong> Build the core functionality first, then add advanced features for modern browsers.</li>
-        </ul>
+                <div class="bg-light rounded-3 p-4 mb-4">
+                    <h4 class="mb-3">Send us a Message</h4>
+                    <form method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Subject</label>
+                                <select class="form-select" id="subject" name="subject" required>
+                                    <option value="">Choose a subject...</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="feedback">Feedback</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-redo me-2"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
-        <h1>Pages and Component Structure</h1>
+                <div class="bg-info bg-opacity-10 border border-info rounded-3 p-4 mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Frequently Asked Questions
+                    </h5>
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How do I reset my password?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Click on the "Forgot Password" link on the login page and enter your registered email address. You'll receive a password reset link via email.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Is my data secure?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! All data is encrypted and stored securely. We use industry-standard security practices to protect your personal information and task data.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Can I use Task Manager on mobile devices?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Absolutely! Task Manager is fully responsive and works great on smartphones, tablets, and desktop computers. Access your tasks anywhere, anytime.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <h2>1. Index Page</h2>
-        <p><strong>Purpose:</strong> Display a responsive grid of recipe cards with clickable links to detailed recipe pages.</p>
-        <ul>
-            <li><strong>Header Component:</strong> Structured with <code>&lt;header class="header" role="banner"&gt;</code> containing a logo and navigation.</li>
-            <li><strong>Recipe Grid Component:</strong> Uses <code>&lt;main class="content grid-4-col" role="main"&gt;</code> with <code>&lt;article class="card"&gt;</code> items rendered from data.</li>
-        </ul>
+                <div class="text-center">
+                    <h4 class="mb-3">Need Immediate Help?</h4>
+                    <p class="text-muted mb-4">Check out our comprehensive documentation and tutorials.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-book me-2"></i>Documentation
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fas fa-video me-2"></i>Video Tutorials
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <h2>2. Recipe Detail Page</h2>
-        <p><strong>Purpose:</strong> Display detailed information about a specific recipe with a responsive two-column layout.</p>
-        <ul>
-            <li><strong>Layout:</strong> <code>&lt;main class="recipe-content" role="main"&gt;</code> containing the recipe image and detailed content.</li>
-            <li><strong>Content:</strong> Includes title, description, ingredients, directions, and metadata like preparation time.</li>
-        </ul>
-
-        <h2>3. Add Recipe Page</h2>
-        <p><strong>Purpose:</strong> Provide an accessible form for submitting new recipes with validation feedback.</p>
-        <ul>
-            <li><strong>Form Structure:</strong> <code>&lt;form id="recipe-form" method="post"&gt;</code> with labelled inputs and ARIA hints.</li>
-            <li><strong>Validation:</strong> Client-side validation combined with server-side handling when integrated with Flask.</li>
-        </ul>
-
-        <h2>4. About Page</h2>
-        <p><strong>Purpose:</strong> Describe the project, its technical specifications, and educational value.</p>
-        <ul>
-            <li><strong>Content:</strong> Explains the tech stack, design principles, and goals for students building the project.</li>
-        </ul>
-
-        <h2>5. CSS Organization</h2>
-        <p>The CSS is organized into sections for variables, base styles, layout components, responsive adjustments, and accessibility helpers.</p>
-
-        <h2>6. JavaScript Functionality</h2>
-        <p>Enhances user experience with interactive features while maintaining accessibility, such as the mobile navigation toggle and planned form validation.</p>
-
-        <h2>7. Transitioning to Flask</h2>
-        <p>Move HTML files into the <code>templates/</code> folder, static assets into <code>static/</code>, replace static links with <code>{% raw %}{{ url_for('route_name') }}{% endraw %}</code>, and prepare for database-backed content.</p>
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                <i class="fas fa-clock me-1"></i>
+                We typically respond within 24 hours during business days
+            </p>
+        </div>
     </div>
-</main>
+</div>
 {% endblock %}
