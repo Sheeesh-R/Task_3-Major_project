@@ -418,7 +418,7 @@
       </div>
       <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="task-container">
         {% for task in tasks %}
-          <div class="col task-item" data-status="{{ task.status }}" data-due-date="{{ task.due_date }}" data-priority="{{ task.priority }}">
+          <div class="col task-item" data-status="{{ task.status }}" data-due-date="{{ task.due_date }}" data-priority="{{ task.priority }}" data-category="{{ task.category_id or task.category or '' }}">
             <div class="card h-100 shadow-sm border-0">
               <div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -500,7 +500,7 @@
       box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
   </style>
-  
+    
   {% block scripts %}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -582,86 +582,15 @@
       const taskDateElements = document.querySelectorAll('.task-due-date');
       const taskDates = [];
       
-      // Handle filter clicks
-      const filterCards = document.querySelectorAll('.filter-card');
-      const upcomingCard = document.querySelector('.filter-card[data-filter="upcoming"]');
-      const originalUpcomingCount = upcomingCard ? upcomingCard.querySelector('h5').textContent : '0';
-      
-      filterCards.forEach(card => {
-        card.addEventListener('click', function() {
-          const filter = this.getAttribute('data-filter');
-          updateUrlParameter('filter', filter);
-          filterTasks(filter);
-          
-          // Update active state and reset all cards to their original state
-          filterCards.forEach(c => {
-            c.classList.remove('active-filter');
-            // Reset upcoming card text if it's not the active card
-            if (c.getAttribute('data-filter') === 'upcoming' && filter !== 'upcoming') {
-              const countElement = c.querySelector('h5');
-              countElement.textContent = originalUpcomingCount;
-            }
-          });
-          
-          // Always hide the hidden tasks message when any filter is clicked
-          const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
-          hiddenTasksInfo.style.display = 'none';
-          this.classList.add('active-filter');
-          
-          // Update the upcoming count display
-          if (filter === 'upcoming') {
-            const taskItems = document.querySelectorAll('.task-item');
             
-            // Count incomplete tasks (including those without due dates)
-            const incompleteCount = Array.from(taskItems).filter(task => {
-              const status = task.getAttribute('data-status');
-              // Count all incomplete tasks, regardless of due date
-              return status !== 'completed';
-            }).length;
-            
-            const completeCount = Array.from(taskItems).filter(task => {
-              return task.getAttribute('data-status') === 'completed';
-            }).length;
-            
-            const upcomingCountElement = this.querySelector('h5');
-            if (incompleteCount > 0 && completeCount > 0) {
-              upcomingCountElement.textContent = `${incompleteCount} incomplete, ${completeCount} complete`;
-            } else if (incompleteCount > 0) {
-              upcomingCountElement.textContent = `${incompleteCount} incomplete`;
-            } else if (completeCount > 0) {
-              upcomingCountElement.textContent = `${completeCount} complete`;
-            } else {
-              upcomingCountElement.textContent = '0';
-            }
-          }
-        });
-      });
-      
-      // Handle filter card clicks
-      document.querySelectorAll('.filter-card').forEach(card => {
-        card.addEventListener('click', function() {
-          const status = this.getAttribute('data-status');
-          const priority = this.getAttribute('data-priority');
-          const category = this.getAttribute('data-category');
-          
-          // Update form values
-          if (status) document.getElementById('status').value = status;
-          if (priority) document.getElementById('priority').value = priority;
-          if (category) document.getElementById('category').value = category;
-          
-          // Update active state of cards
-          document.querySelectorAll('.filter-card').forEach(c => {
-            c.classList.remove('active-filter');
-          });
-          this.classList.add('active-filter');
-        });
-      });
-      
       // Apply Filters button functionality
       document.getElementById('applyFilters').addEventListener('click', function() {
+        console.log('Apply Filters button clicked');
         const status = document.getElementById('status').value;
         const priority = document.getElementById('priority').value;
         const category = document.getElementById('category').value;
+        
+        console.log('Applying filters:', { status, priority, category });
         
         // Filter tasks based on selected criteria
         const taskItems = document.querySelectorAll('.task-item');
@@ -710,11 +639,6 @@
         if (hiddenTasksInfo) {
           hiddenTasksInfo.style.display = 'none';
         }
-        
-        // Update active state of filter cards
-        document.querySelectorAll('.filter-card').forEach(card => {
-          card.classList.remove('active-filter');
-        });
       });
       
       // Clear Filters button functionality
@@ -756,11 +680,6 @@
         } else {
           hiddenTasksInfo.style.display = 'none';
         }
-        
-        // Reset active state of filter cards
-        document.querySelectorAll('.filter-card').forEach(card => {
-          card.classList.remove('active-filter');
-        });
       });
       
 
@@ -775,13 +694,6 @@
         // If no filter is active, default to hiding completed tasks
         if (!filter || filter === 'all') {
           filter = 'incomplete';
-          // Update the active filter UI
-          document.querySelectorAll('.filter-card').forEach(card => {
-            card.classList.remove('active-filter');
-            if (card.getAttribute('data-filter') === 'all') {
-              card.classList.add('active-filter');
-            }
-          });
         }
         
         taskItems.forEach(task => {
@@ -989,6 +901,103 @@
       document.getElementById('category').addEventListener('change', function() {
         this.form.submit();
       });
-    </script>
+
+      // Function to set filters from overview cards (instant filtering)
+      function setFilterFromCard(card) {
+        console.log('setFilterFromCard called');
+        const status = card.getAttribute('data-status');
+        const priority = card.getAttribute('data-priority');
+        const category = card.getAttribute('data-category');
+        
+        console.log('Filters:', { status, priority, category });
+        
+        // Check if form elements exist
+        const statusSelect = document.getElementById('status');
+        const prioritySelect = document.getElementById('priority');
+        const categorySelect = document.getElementById('category');
+        
+        console.log('Form elements found:', { 
+          status: !!statusSelect, 
+          priority: !!prioritySelect, 
+          category: !!categorySelect 
+        });
+        
+        // Update form values
+        if (status && statusSelect) {
+          statusSelect.value = status;
+          console.log('Status set to:', status);
+        }
+        if (priority && prioritySelect) {
+          prioritySelect.value = priority;
+          console.log('Priority set to:', priority);
+        }
+        if (category && categorySelect) {
+          categorySelect.value = category;
+          console.log('Category set to:', category);
+        }
+        
+        console.log('Form values updated');
+        
+        // Apply filters directly (same logic as Apply Filters button)
+        const taskItems = document.querySelectorAll('.task-item');
+        let hasVisibleTasks = false;
+        
+        taskItems.forEach(task => {
+          const taskStatus = task.getAttribute('data-status');
+          const taskPriority = task.getAttribute('data-priority');
+          const taskCategory = task.getAttribute('data-category');
+          
+          let shouldShow = true;
+          
+          // Check status filter
+          if (status !== 'all') {
+            if (status.includes(',')) {
+              // Handle multiple statuses (like "not_started,in_progress")
+              const statuses = status.split(',');
+              shouldShow = shouldShow && statuses.includes(taskStatus);
+            } else {
+              shouldShow = shouldShow && (taskStatus === status);
+            }
+          }
+          
+          // Check priority filter
+          if (priority !== 'all') {
+            shouldShow = shouldShow && (taskPriority === priority);
+          }
+          
+          // Check category filter
+          if (category !== 'all') {
+            shouldShow = shouldShow && (taskCategory === category);
+          }
+          
+          task.style.display = shouldShow ? 'block' : 'none';
+          if (shouldShow) hasVisibleTasks = true;
+          
+          console.log('Task:', taskStatus, 'should show:', shouldShow);
+        });
+        
+        // Show/hide no tasks message
+        const noTasksMsg = document.getElementById('no-tasks-msg');
+        if (noTasksMsg) {
+          noTasksMsg.style.display = hasVisibleTasks ? 'none' : 'block';
+        }
+        
+        // Hide hidden tasks info when filters are applied
+        const hiddenTasksInfo = document.getElementById('hidden-tasks-info');
+        if (hiddenTasksInfo) {
+          hiddenTasksInfo.style.display = 'none';
+        }
+        
+        console.log('Filters applied directly');
+        
+        // Update active state of cards
+        document.querySelectorAll('.filter-card').forEach(c => {
+          c.classList.remove('active-filter');
+        });
+        card.classList.add('active-filter');
+        console.log('Card active state updated');
+      }
+
+          </script>
   {% endblock %}
 {% endblock %}

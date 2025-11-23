@@ -37,8 +37,8 @@ def init_app(app):
     with app.app_context():
         db = get_db()
         try:
-            # Try to query the tasks table to see if it exists
-            db.execute('SELECT 1 FROM tasks LIMIT 1')
+            # Try to query the users table to see if it exists
+            db.execute('SELECT 1 FROM users LIMIT 1')
         except sqlite3.OperationalError:
             # If the query fails, initialize the database
             init_db()
