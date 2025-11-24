@@ -685,8 +685,9 @@ body {
 
 /* ------- MOBILE MENU STYLES ------- */
 /* Hamburger menu icon - hidden on desktop, visible on mobile */
+/*
 .nav-toggle {
-    display: none;                      /* Hidden on larger screens */
+    display: none;                      / * Hidden on larger screens * /
 }
 
 /* ------- RESPONSIVE DESIGN FOR MOBILE ------- */
@@ -716,36 +717,81 @@ body {
         padding: 15px;                   /* Less padding on mobile */
         max-width: none;                 /* No maximum width */
     }
+}
+
+@media (max-width: 480px) {
+    /* Smaller font size for buttons on very small screens */
+    .btn, .btn-action {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    /* Slightly smaller form inputs */
+    .form-control, .form-select {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+    }
+
+    /* Reduce card padding and margin */
+    .card {
+        padding: 15px;
+        margin-bottom: 1rem;
+    }
+
+    /* Stack action buttons vertically */
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    /* Adjust task action buttons */
+    .task-actions {
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    /* Reduce size of small buttons */
+    .btn-action {
+        width: 28px;
+        height: 28px;
+    }
+}
 
     /* ------- MOBILE NAVIGATION ------- */
     /* Navigation menu on mobile - hidden by default */
+    /*
     .nav-links {
-        display: none;                   /* Hidden until hamburger is clicked */
-        flex-direction: column;          /* Stack links vertically */
-        position: absolute;              /* Position over other content */
-        top: 60px;                       /* Position from top of screen */
-        right: 20px;                     /* Position from right of screen */
-        background-color: var(--red-color); /* Red background */
-        padding: 10px;                   /* Space inside the menu */
-        border-radius: 5px;              /* Rounded corners */
-        width: 200px;                    /* Width of the dropdown menu */
+        display: none;                   /* Hidden until hamburger is clicked * /
+        flex-direction: column;          /* Stack links vertically * /
+        position: absolute;              /* Position over other content * /
+        top: 60px;                       /* Position from top of screen * /
+        right: 20px;                     /* Position from right of screen * /
+        background-color: var(--red-color); /* Red background * /
+        padding: 10px;                   /* Space inside the menu * /
+        border-radius: 5px;              /* Rounded corners * /
+        width: 200px;                    /* Width of the dropdown menu * /
     }
 
     /* Space between navigation links on mobile */
+    /*
     .nav-links a {
-        margin: 10px 0;                  /* Space above and below each link */
+        margin: 10px 0;                  /* Space above and below each link * /
     }
 
     /* Hamburger menu icon styling */
+    /*
     .nav-toggle {
-        display: block;                  /* Show on mobile */
-        cursor: pointer;                 /* Hand cursor on hover */
-        font-size: 24px;                 /* Size of the hamburger icon */
-        color: white;                    /* White color */
+        display: block;                  /* Show on mobile * /
+        cursor: pointer;                 /* Hand cursor on hover * /
+        font-size: 24px;                 /* Size of the hamburger icon * /
+        color: white;                    /* White color * /
     }
 
     /* Shows the navigation menu when hamburger is clicked */
+    /*
     .nav-links.show {
-        display: flex;                   /* Shows the menu when .show class is added */
+        display: flex;                   /* Shows the menu when .show class is added * /
     }
 }
