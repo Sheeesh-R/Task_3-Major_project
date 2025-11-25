@@ -22,7 +22,25 @@ def create_app():
         DATABASE=os.path.join(app.instance_path, 'taskmanager.db'),
         SCHEMA_PATH='task_schema.sql'
     )
-
+    
+    # Register custom Jinja2 filter HERE (inside create_app)
+    @app.template_filter('date_filter')
+    def date_filter(date_value):
+        """Format a date for display"""
+        if not date_value:
+            return ''
+        
+        # If it's already a datetime object
+        if isinstance(date_value, datetime):
+            return date_value.strftime('%Y-%m-%d')
+        
+        # If it's a string, try to parse it
+        try:
+            date_obj = datetime.strptime(str(date_value), '%Y-%m-%d')
+            return date_obj.strftime('%Y-%m-%d')
+        except:
+            return str(date_value)
+    
     os.makedirs(app.instance_path, exist_ok=True)
     init_app(app)
     register_routes(app)
