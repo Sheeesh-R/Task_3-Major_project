@@ -733,6 +733,27 @@
                 padding: 1rem 0.5rem;
             }
         }
+        
+        /* Circular checkbox styling */
+        .task-toggle .form-check-input {
+            border-radius: 50% !important;
+            width: 20px !important;
+            height: 20px !important;
+            cursor: pointer !important;
+            border: 2px solid #dee2e6 !important;
+            background-color: white !important;
+        }
+        
+        .task-toggle .form-check-input:checked {
+            background-color: #667eea !important;
+            border-color: #667eea !important;
+        }
+        
+        .task-toggle .form-check-input:focus {
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25) !important;
+            border-color: #667eea !important;
+            outline: none !important;
+        }
     </style>
 </head>
 <body>
@@ -801,9 +822,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Auto-hide flash messages after 3 seconds
+        // Auto-hide flash messages after 3 seconds (but not hidden tasks notification)
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
+            const alerts = document.querySelectorAll('.alert:not(#hidden-tasks-info)');
             alerts.forEach(function(alert) {
                 setTimeout(function() {
                     // Add fade effect

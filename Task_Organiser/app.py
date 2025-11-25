@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, current_app, session, g
+from flask import Flask, render_template, request, redirect, url_for, flash, current_app, session, g, jsonify
 from .db import get_db, init_app
 import hashlib
 from functools import wraps
@@ -329,6 +329,33 @@ def register_routes(app):
                 return redirect(url_for('contact'))
         
         return render_template('contact.html')
+
+    @app.route('/toggle_task/<int:task_id>', methods=['POST'])
+    @login_required
+    def toggle_task(task_id):
+        db = get_db()
+        task = db.execute('SELECT * FROM tasks WHERE id = ? AND user_id = ?', (task_id, g.user['id'])).fetchone()
+        
+        if task is None:
+            return jsonify({'success': False, 'error': 'Task not found'})
+        
+        try:
+            data = request.get_json()
+            completed = data.get('completed', False)
+            
+            new_status = 'completed' if completed else 'not_started'
+            completed_at = datetime.now().isoformat() if completed else None
+            
+            db.execute(
+                'UPDATE tasks SET status = ?, completed_at = ? WHERE id = ?',
+                (new_status, completed_at, task_id)
+            )
+            db.commit()
+            
+            return jsonify({'success': True, 'status': new_status})
+        except Exception as e:
+            db.rollback()
+            return jsonify({'success': False, 'error': str(e)})
 
 
 app = create_app()

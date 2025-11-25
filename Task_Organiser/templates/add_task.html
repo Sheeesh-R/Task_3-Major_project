@@ -5,58 +5,89 @@
 {% block content %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 col-sm-12">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h2 class="h5 mb-0">Add New Task</h2>
+      <div class="card shadow-lg border-0 overflow-hidden">
+        <!-- Gradient header -->
+        <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div>
+            <h2 class="h4 mb-1 fw-bold">Add New Task</h2>
+            <p class="mb-0 opacity-75 small">Create a new task to stay organized</p>
+          </div>
         </div>
-        <div class="card-body">
+        
+        <div class="card-body p-4 p-lg-5">
           <form method="post" action="{{ url_for('add_task') }}">
-            <div class="mb-3">
-              <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="title" name="title" required 
-                     value="{{ request.form.get('title', '') }}">
+            <!-- Title field -->
+            <div class="mb-4">
+              <label for="title" class="form-label fw-semibold">
+                <i class="fas fa-heading me-2 text-primary"></i>Title 
+                <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control form-control-lg" id="title" name="title" required 
+                     value="{{ request.form.get('title', '') }}" 
+                     placeholder="Enter task title"
+                     style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
             </div>
             
-            <div class="mb-3">
-              <label for="description" class="form-label">Description</label>
+            <!-- Description field -->
+            <div class="mb-4">
+              <label for="description" class="form-label fw-semibold">
+                <i class="fas fa-align-left me-2 text-primary"></i>Description
+              </label>
               <textarea class="form-control" id="description" name="description" 
-                        rows="3">{{ request.form.get('description', '') }}</textarea>
+                        rows="4" 
+                        placeholder="Add task description (optional)"
+                        style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease; resize: vertical;">{{ request.form.get('description', '') }}</textarea>
             </div>
             
-            <div class="row">
-              <div class="col-md-6 col-sm-12 mb-3">
-                <label for="due_date" class="form-label">Due Date</label>
+            <!-- Date and Priority row -->
+            <div class="row mb-4">
+              <div class="col-md-6 col-sm-12 mb-3 mb-md-0">
+                <label for="due_date" class="form-label fw-semibold">
+                  <i class="fas fa-calendar me-2 text-primary"></i>Due Date
+                </label>
                 <input type="date" class="form-control" id="due_date" name="due_date"
-                       value="{{ request.form.get('due_date', '') }}">
+                       value="{{ request.form.get('due_date', '') }}"
+                       style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
               </div>
               
-              <div class="col-md-6 col-sm-12 mb-3">
-                <label for="priority" class="form-label">Priority</label>
-                <select class="form-select" id="priority" name="priority">
-                  <option value="high" {% if request.form.get('priority') == 'high' %}selected{% endif %}>High</option>
-                  <option value="medium" {% if not request.form.get('priority') or request.form.get('priority') == 'medium' %}selected{% endif %}>Medium</option>
-                  <option value="low" {% if request.form.get('priority') == 'low' %}selected{% endif %}>Low</option>
+              <div class="col-md-6 col-sm-12">
+                <label for="priority" class="form-label fw-semibold">
+                  <i class="fas fa-flag me-2 text-primary"></i>Priority
+                </label>
+                <select class="form-select" id="priority" name="priority"
+                        style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
+                  <option value="high" {% if request.form.get('priority') == 'high' %}selected{% endif %}>🔴 High Priority</option>
+                  <option value="medium" {% if not request.form.get('priority') or request.form.get('priority') == 'medium' %}selected{% endif %}>🟡 Medium Priority</option>
+                  <option value="low" {% if request.form.get('priority') == 'low' %}selected{% endif %}>🟢 Low Priority</option>
                 </select>
               </div>
             </div>
             
-            <div class="row">
-              <div class="col-md-6 col-sm-12 mb-3">
-                <label for="status" class="form-label">Status</label>
-                <select class="form-select" id="status" name="status">
-                  <option value="not_started" {% if not request.form.get('status') or request.form.get('status') == 'not_started' %}selected{% endif %}>Not Started</option>
-                  <option value="in_progress" {% if request.form.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
-                  <option value="completed" {% if request.form.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+            <!-- Status and Category row -->
+            <div class="row mb-4">
+              <div class="col-md-6 col-sm-12 mb-3 mb-md-0">
+                <label for="status" class="form-label fw-semibold">
+                  <i class="fas fa-tasks me-2 text-primary"></i>Status
+                </label>
+                <select class="form-select" id="status" name="status"
+                        style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
+                  <option value="not_started" {% if not request.form.get('status') or request.form.get('status') == 'not_started' %}selected{% endif %}>📋 Not Started</option>
+                  <option value="in_progress" {% if request.form.get('status') == 'in_progress' %}selected{% endif %}>⚡ In Progress</option>
+                  <option value="completed" {% if request.form.get('status') == 'completed' %}selected{% endif %}>✅ Completed</option>
                 </select>
               </div>
               
-              <div class="col-md-6 col-sm-12 mb-3">
-                <label for="category_id" class="form-label">Category</label>
-                <select class="form-select" id="category_id" name="category_id">
-                  <option value="">No Category</option>
+              <div class="col-md-6 col-sm-12">
+                <label for="category_id" class="form-label fw-semibold">
+                  <i class="fas fa-tag me-2 text-primary"></i>Category
+                </label>
+                <select class="form-select" id="category_id" name="category_id"
+                        style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
+                  <option value="">📌 No Category</option>
                   {% for category in categories %}
                     <option value="{{ category.id }}" 
-                            {% if request.form.get('category_id')|string == category.id|string %}selected{% endif %}>
+                            {% if request.form.get('category_id')|string == category.id|string %}selected{% endif %}
+                            data-color="{{ category.color }}">
                       {{ category.name }}
                     </option>
                   {% endfor %}
@@ -64,12 +95,17 @@
               </div>
             </div>
             
-            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
-              <a href="{{ url_for('index') }}" class="btn btn-action" style="width: auto; padding: 0.375rem 1rem; border-color: #6c757d; color: #6c757d;">
-                <i class="fas fa-times me-1"></i> Cancel
+            <!-- Action buttons -->
+            <div class="d-flex flex-column flex-sm-row justify-content-end gap-3 mt-5 pt-4 border-top">
+              <a href="{{ url_for('index') }}" 
+                 class="btn btn-lg px-4 py-2 d-flex align-items-center justify-content-center"
+                 style="border-radius: 12px; border: 2px solid #6c757d; color: #6c757d; background: transparent; transition: all 0.3s ease;">
+                <i class="fas fa-times me-2"></i> Cancel
               </a>
-              <button type="submit" class="btn btn-action" style="width: auto; padding: 0.375rem 1rem; background-color: #198754; border-color: #198754; color: white;">
-                <i class="fas fa-save me-1"></i> Save Task
+              <button type="submit" 
+                      class="btn btn-lg px-4 py-2 d-flex align-items-center justify-content-center"
+                      style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; transition: all 0.3s ease;">
+                <i class="fas fa-save me-2"></i> Save Task
               </button>
             </div>
           </form>
@@ -77,14 +113,74 @@
       </div>
     </div>
   </div>
+
+  <style>
+    /* Form field hover and focus effects */
+    .form-control:hover, .form-select:hover {
+      border-color: #667eea !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: #667eea !important;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      transform: translateY(-1px);
+    }
+    
+    /* Button hover effects */
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Cancel button hover */
+    .btn:hover[style*="#6c757d"] {
+      background-color: #6c757d !important;
+      color: white !important;
+    }
+    
+    /* Save button hover */
+    .btn:hover[style*="#667eea"] {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    }
+    
+    /* Category select color styling */
+    #category_id {
+      color: var(--category-color, #6c757d);
+      border-color: var(--category-color, #e9ecef);
+    }
+  </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Set minimum date to today for due date
   document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today for due date
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('due_date').min = today;
+    const dueDateInput = document.getElementById('due_date');
+    if (dueDateInput) {
+      dueDateInput.min = today;
+    }
+
+    // Handle category color styling
+    const categorySelect = document.getElementById('category_id');
+    if (categorySelect) {
+      // Update color when selection changes
+      const updateCategoryColor = () => {
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        const color = selectedOption.dataset.color || '#6c757d';
+        categorySelect.style.setProperty('--category-color', color);
+        categorySelect.style.color = color;
+        categorySelect.style.borderColor = color;
+      };
+      
+      // Initial update
+      updateCategoryColor();
+      
+      // Update on change
+      categorySelect.addEventListener('change', updateCategoryColor);
+    }
   });
 </script>
 {% endblock %}
