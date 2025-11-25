@@ -61,6 +61,14 @@ def create_app():
         }
         return classes.get(status, 'light')
 
+    @app.template_filter('date_filter')
+    def date_filter(value, format='%Y-%m-%d'):
+        if value is None:
+            return ''
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value)
+        return value.strftime(format)
+
     return app
 
 
