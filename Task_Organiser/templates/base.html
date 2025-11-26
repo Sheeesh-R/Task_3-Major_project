@@ -777,7 +777,7 @@
                 <div class="navbar-nav ms-auto">
                     {% if g.user %}
                         <span class="navbar-text me-3">Welcome, {{ g.user.username }}!</span>
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
                     {% else %}
                         <a class="nav-link" href="{{ url_for('login') }}">Login</a>
                         <a class="nav-link" href="{{ url_for('register') }}">Register</a>
