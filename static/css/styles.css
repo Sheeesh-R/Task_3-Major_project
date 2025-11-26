@@ -759,6 +759,16 @@ body {
     }
 }
 
+.new-task {
+    color: white !important;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(208, 190, 190, 0.1);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
     /* ------- MOBILE NAVIGATION ------- */
     /* Navigation menu on mobile - hidden by default */
     /*
