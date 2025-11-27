@@ -1516,144 +1516,9 @@
       // Navigation
       prevBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
-
-      console.log("Calendar rendered.");
-
-      function isToday(date) {
-        const today = new Date();
-        return date.getDate() === today.getDate() &&
-               date.getMonth() === today.getMonth() &&
-               date.getFullYear() === today.getFullYear();
-      }
-
-      // Get all task due dates from task cards
-      const taskItems = document.querySelectorAll('.task-item');
-      const taskDates = [];
-
-      if (taskItems.length === 0) {
-        console.log("No tasks found.");
-      } else {
-        taskItems.forEach(function(task) {
-          const dateStr = task.getAttribute('data-due-date');
-          if (dateStr) {
-            const dueDate = new Date(dateStr);
-            if (!isNaN(dueDate.getTime())) {  // Check if date is valid
-              taskDates.push(dueDate.toDateString());
-              console.log("Found task due date:", dueDate.toDateString());
-            }
-          }
-        });
-        console.log("Task dates processed:", taskDates);
-      }
-
-      // Calendar elements
-      const calendarDays = document.getElementById('calendar-days');
-      const monthYear = document.getElementById('current-month-year');
-      const prevBtn = document.getElementById('prev-month');
-      const nextBtn = document.getElementById('next-month');
-      const todayBtn = document.getElementById('today');
-
-      // Initialize current date
-      let currentDate = new Date();
-
-      if (isNaN(currentDate.getTime())) {
-        currentDate = new Date();
-      }
-
-      function renderCalendar() {
-        if (!calendarDays) {
-          console.log("Calendar days element missing!");
-          return;
-        }
-        if (!monthYear) {
-          console.log("Month-year label element missing!");
-        } else {
-          monthYear.textContent = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-        }
-
-        calendarDays.innerHTML = '';
-
-        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        const lastDayOfLastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-
-        for (let i = 0; i < firstDay.getDay(); i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day other-month';
-          dayElement.textContent = lastDayOfLastMonth.getDate() - firstDay.getDay() + i + 1;
-          calendarDays.appendChild(dayElement);
-        }
-
-        for (let i = 1; i <= lastDay.getDate(); i++) {
-          const dayElement = document.createElement('div');
-          const currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
-          dayElement.className = 'calendar-day';
-
-          if (isToday(currentDay)) {
-            dayElement.classList.add('today');
-          }
-
-          const dateStr = currentDay.toDateString();
-          const hasTasks = Array.isArray(taskDates) && taskDates.includes(dateStr);
-
-          if (hasTasks) {
-            dayElement.classList.add('has-task');
-            if (isToday(currentDay)) {
-              dayElement.classList.add('has-tasks');
-            }
-          }
-
-          dayElement.textContent = i;
-
-          // Create date object for this day
-          const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
-          const dateString = date.toDateString();
-
-          // Highlight today
-          if (dateString === new Date().toDateString()) {
-            dayElement.classList.add('today');
-          }
-
-          if (Array.isArray(taskDates) && taskDates.includes(dateString)) {
-            dayElement.classList.add('has-task');
-          }
-
-          calendarDays.appendChild(dayElement);
-        }
-
-        const totalDays = firstDay.getDay() + lastDay.getDate();
-        const remainingCells = Math.ceil(totalDays / 7) * 7 - totalDays;
-
-        for (let i = 1; i <= remainingCells; i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day other-month';
-          dayElement.textContent = i;
-          calendarDays.appendChild(dayElement);
-        }
-      }
-
-      prevBtn.addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        console.log("Prev month clicked. Current month:", currentDate.getMonth());
         renderCalendar();
       });
 
-      nextBtn.addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        console.log("Next month clicked. Current month:", currentDate.getMonth());
-        renderCalendar();
-      });
-
-      todayBtn.addEventListener('click', () => {
-        currentDate = new Date();
-        console.log("Today button clicked.");
-        renderCalendar();
-      });
-
-      renderCalendar();
-    });
-      
       nextBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar();
@@ -1663,7 +1528,7 @@
         currentDate = new Date();
         renderCalendar();
       });
-      
+
       // Initial render
       renderCalendar();
     });
