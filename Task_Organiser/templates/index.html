@@ -5,7 +5,7 @@
 {% block content %}
 <style>
   .category-badge {
-    background: var(--category-color, var(--primary-gradient));
+    background: var(--category-color, var(--primary));
     color: #fff;
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
@@ -42,8 +42,8 @@
   }
   
   .task-toggle.completed {
-    background: var(--success-gradient);
-    border-color: var(--success-color);
+    background: var(--success);
+    border-color: var(--success);
     color: white;
     animation: pulse 0.5s ease;
   }
@@ -91,9 +91,9 @@
   }
 
   .btn-edit:hover {
-    background: var(--primary-gradient);
+    background: var(--primary);
     color: white;
-    border-color: transparent;
+    border-color: var(--primary);
   }
 
   .btn-delete {
@@ -102,9 +102,9 @@
   }
 
   .btn-delete:hover {
-    background: var(--secondary-gradient);
+    background: var(--danger);
     color: white;
-    border-color: transparent;
+    border-color: var(--danger);
   }
 
   .btn-save {
@@ -113,9 +113,9 @@
   }
 
   .btn-save:hover {
-    background: var(--success-gradient);
+    background: var(--success);
     color: white;
-    border-color: transparent;
+    border-color: var(--success);
   }
 
   .btn-add {
@@ -124,9 +124,9 @@
   }
 
   .btn-add:hover {
-    background: var(--info-gradient);
+    background: var(--info);
     color: white;
-    border-color: transparent;
+    border-color: var(--info);
   }
   
   .btn-group-sm > .btn {
@@ -294,15 +294,15 @@
 
   /* Status indicator bars */
   .status-indicator-not_started {
-    background: var(--secondary-gradient);
+    background: var(--danger);
   }
   
   .status-indicator-in_progress {
-    background: var(--warning-gradient);
+    background: var(--warning);
   }
   
   .status-indicator-completed {
-    background: var(--success-gradient);
+    background: var(--success);
   }
 
   /* Category badges - will be styled via JavaScript */
@@ -349,9 +349,6 @@
       gap: 0.5rem;
     }
     
-    .filter-card .bg-gradient {
-      margin-bottom: 0.5rem;
-    }
     
     /* Overview cards mobile adjustments */
     .filter-card .card-body {
@@ -366,14 +363,6 @@
       font-size: 0.875rem !important;
     }
     
-    .filter-card .bg-gradient {
-      width: 40px !important;
-      height: 40px !important;
-    }
-    
-    .filter-card .bg-gradient i {
-      font-size: 1rem !important;
-    }
     
     /* Calendar header mobile fix */
     .calendar-header-btn {
@@ -505,14 +494,6 @@
       font-size: 0.75rem !important;
     }
     
-    .filter-card .bg-gradient {
-      width: 32px !important;
-      height: 32px !important;
-    }
-    
-    .filter-card .bg-gradient i {
-      font-size: 0.875rem !important;
-    }
     
     /* Calendar header small mobile fix */
     .calendar-header-btn {
@@ -632,7 +613,7 @@
   <div class="row mb-5 fade-in-up">
     <div class="col-12">
       <div class="text-center">
-        <h1 class="display-4 fw-bold mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Task Dashboard</h1>
+        <h1 class="display-4 fw-bold mb-3" style="color: var(--primary);">HSC Study Dashboard</h1>
         <p class="lead text-secondary">Manage your academic workflow with precision and style</p>
       </div>
     </div>
@@ -643,7 +624,7 @@
     <!-- Filters and Overview Cards -->
     <div class="col-12 col-lg-8 order-lg-1">
       <!-- Filters -->
-      <div class="card shadow-lg border-0 mb-3 mb-md-4">
+      <div class="card border-0 mb-3 mb-md-4">
         <div class="card-body p-3 p-md-4">
           <div class="d-flex align-items-center mb-3">
             <h5 class="mb-0 fw-bold">Filters</h5>
@@ -708,60 +689,60 @@
       <!-- Overview Cards -->
       <div class="row g-2 g-md-3">
         <div class="col-6 col-md-3">
-          <div class="card shadow-lg border-0 h-100 filter-card fade-in-up" data-status="all" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease;" onclick="setFilterFromCard(this)">
+          <div class="card border-0 h-100 filter-card fade-in-up" data-status="all" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; border-left: 4px solid var(--primary);" onclick="setFilterFromCard(this)">
             <div class="card-body p-2 p-md-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <small class="text-secondary d-block fw-semibold">Total Tasks</small>
                   <h4 class="mb-0 fw-bold">{{ tasks|length }}</h4>
                 </div>
-                <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; width: 48px; height: 48px; background: var(--primary-gradient);">
-                  <i class="fas fa-tasks text-white" style="font-size: 0.875rem; font-size: 1.25rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--primary);">
+                  <i class="fas fa-tasks text-white" style="font-size: 1.25rem;"></i>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-md-3">
-          <div class="card shadow-lg border-0 h-100 filter-card fade-in-up" data-status="not_started,in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.1s;" onclick="setFilterFromCard(this)">
+          <div class="card border-0 h-100 filter-card fade-in-up" data-status="not_started,in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.1s; border-left: 4px solid var(--warning);" onclick="setFilterFromCard(this)">
             <div class="card-body p-2 p-md-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <small class="text-secondary d-block fw-semibold">In Progress</small>
                   <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '!=', 'completed')|list|length }}</h4>
                 </div>
-                <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; width: 48px; height: 48px; background: var(--warning-gradient);">
-                  <i class="fas fa-clock text-white" style="font-size: 0.875rem; font-size: 1.25rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--warning);">
+                  <i class="fas fa-clock text-white" style="font-size: 1.25rem;"></i>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-md-3">
-          <div class="card shadow-lg border-0 h-100 filter-card fade-in-up" data-status="completed" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.2s;" onclick="setFilterFromCard(this)">
+          <div class="card border-0 h-100 filter-card fade-in-up" data-status="completed" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.2s; border-left: 4px solid var(--success);" onclick="setFilterFromCard(this)">
             <div class="card-body p-2 p-md-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <small class="text-secondary d-block fw-semibold">Completed</small>
                   <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'completed')|list|length }}</h4>
                 </div>
-                <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; width: 48px; height: 48px; background: var(--success-gradient);">
-                  <i class="fas fa-check-circle text-white" style="font-size: 0.875rem; font-size: 1.25rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--success);">
+                  <i class="fas fa-check-circle text-white" style="font-size: 1.25rem;"></i>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-md-3">
-          <div class="card shadow-lg border-0 h-100 filter-card fade-in-up" data-status="in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.3s;" onclick="setFilterFromCard(this)">
+          <div class="card border-0 h-100 filter-card fade-in-up" data-status="in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.3s; border-left: 4px solid var(--info);" onclick="setFilterFromCard(this)">
             <div class="card-body p-2 p-md-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <small class="text-secondary d-block fw-semibold">Active Now</small>
                   <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'in_progress')|list|length }}</h4>
                 </div>
-                <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; width: 48px; height: 48px; background: var(--info-gradient);">
-                  <i class="fas fa-spinner text-white" style="font-size: 0.875rem; font-size: 1.25rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--info);">
+                  <i class="fas fa-spinner text-white" style="font-size: 1.25rem;"></i>
                 </div>
               </div>
             </div>
@@ -772,9 +753,9 @@
 
     <!-- Calendar Section -->
     <div class="col-12 col-lg-4 order-lg-2">
-      <div class="card shadow-lg border-0 fade-in-up" style="animation-delay: 0.4s;">
+      <div class="card border-0 fade-in-up" style="animation-delay: 0.4s;">
         <div class="card-body p-0">
-          <button class="btn w-100 text-start p-3 p-md-4 border-0 d-flex justify-content-between align-items-center calendar-header-btn" type="button" data-bs-toggle="collapse" data-bs-target="#calendarCollapse" aria-expanded="false" aria-controls="calendarCollapse" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); color: white;">
+          <button class="btn w-100 text-start p-3 p-md-4 border-0 d-flex justify-content-between align-items-center calendar-header-btn" type="button" data-bs-toggle="collapse" data-bs-target="#calendarCollapse" aria-expanded="true" aria-controls="calendarCollapse" style="background: var(--primary); color: white;">
             <div class="d-flex align-items-center">
               <span class="fw-bold fs-6">Academic Calendar</span>
             </div>
@@ -782,7 +763,7 @@
               <i class="fas fa-chevron-down"></i>
             </div>
           </button>
-          <div class="collapse" id="calendarCollapse">
+          <div class="collapse show" id="calendarCollapse">
             <div class="p-3 p-md-4 pt-2 pt-md-3">
               <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
                 <h6 class="mb-0 fw-bold" id="current-month-year" style="color: var(--text-primary);">November 2025</h6>
@@ -861,7 +842,7 @@
                data-category="{{ task.category_id or 'all' }}"
                data-due-date="{{ task.due_date or '' }}"
                data-animation-delay="{{ loop.index }}">
-            <div class="card shadow-sm border-0 h-100 position-relative overflow-hidden">
+            <div class="card border-0 h-100 position-relative overflow-hidden">
               <!-- Status indicator bar -->
               <div class="position-absolute top-0 start-0 w-100 status-indicator-{{ task.status }}" style="height: 4px;"></div>
               
@@ -1011,7 +992,7 @@
               const statusBar = taskElement.querySelector('.position-absolute');
               if (statusBar) {
                 const statusClass = isChecked ? 'success' : 'secondary';
-                statusBar.style.background = `var(--${statusClass}-gradient)`;
+                statusBar.style.background = `var(--${statusClass})`;
               }
               
               // Update title styling

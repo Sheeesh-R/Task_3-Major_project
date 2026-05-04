@@ -551,3 +551,395 @@ When writing your Word document, use this as a checklist:
 - [ ] **4.1** Level 1 DFD: User → Login (auth check) → Dashboard → Subject data → ML Model → Scaled marks → ATAR output → User
 - [ ] **5.1** Flowchart: Input raw marks → Apply polynomial coefficients → Predict scaled marks → Sort by units → Sum best 10 units → Convert aggregate to ATAR → Display
 - [ ] **5.2** Updated DB schema diagram showing all 4 tables (users, subjects, tasks, assessment_results) with foreign key relationships
+
+---
+
+## 11. Additional Performance & Feature Enhancements
+
+### 11.1 Performance Optimizations
+
+**Database & Backend**
+- **Pagination**: Implement pagination for task lists to handle large datasets
+- **Database Indexing**: Add indexes on frequently queried columns:
+  ```sql
+  CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+  CREATE INDEX idx_tasks_status ON tasks(status);
+  CREATE INDEX idx_tasks_priority ON tasks(priority);
+  CREATE INDEX idx_tasks_due_date ON tasks(due_date);
+  CREATE INDEX idx_tasks_subject_id ON tasks(subject_id);
+  ```
+- **Connection Pooling**: Configure SQLite connection pooling for better performance
+- **Query Optimization**: Reduce N+1 query problems with JOIN optimization
+- **Caching Layer**: Implement Redis/Memcached for frequent queries (subject lists, user data)
+
+### 11.2 Advanced Task Features
+
+**Enhanced Functionality**
+- **Task Search**: Full-text search across task titles and descriptions
+  ```python
+  # New route
+  @app.route('/search')
+  def search_tasks():
+      query = request.args.get('q', '')
+      # SQLite FTS implementation
+  ```
+- **Bulk Operations**: Multi-select for batch actions (delete, change status, assign subject)
+- **Recurring Tasks**: Daily/weekly/monthly recurring task patterns
+  ```sql
+  ALTER TABLE tasks ADD COLUMN recurring_pattern TEXT;  -- 'daily', 'weekly', 'monthly'
+  ALTER TABLE tasks ADD COLUMN next_due_date TEXT;
+  ```
+- **Task Dependencies**: Parent-child relationships for complex workflows
+  ```sql
+  CREATE TABLE task_dependencies (
+      parent_id INTEGER NOT NULL,
+      child_id INTEGER NOT NULL,
+      FOREIGN KEY (parent_id) REFERENCES tasks(id),
+      FOREIGN KEY (child_id) REFERENCES tasks(id)
+  );
+  ```
+- **File Attachments**: Allow file uploads for tasks (assignments, notes)
+  ```sql
+  CREATE TABLE task_attachments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id INTEGER NOT NULL,
+      filename TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER,
+      upload_date TEXT,
+      FOREIGN KEY (task_id) REFERENCES tasks(id)
+  );
+  ```
+- **Task Comments**: Discussion threads for collaborative tasks
+  ```sql
+  CREATE TABLE task_comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      comment TEXT NOT NULL,
+      created_at TEXT,
+      FOREIGN KEY (task_id) REFERENCES tasks(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+  ```
+- **Task Templates**: Pre-defined templates for common HSC activities
+  ```sql
+  CREATE TABLE task_templates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      title_template TEXT NOT NULL,
+      description_template TEXT,
+      default_priority TEXT,
+      estimated_duration INTEGER,  -- in minutes
+      subject_id INTEGER,
+      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+  );
+  ```
+
+### 11.3 User Experience Enhancements
+
+**Notifications & Communication**
+- **Email Notifications**: Due date reminders and status updates
+  ```python
+  # New file: notifications.py
+  from flask_mail import Mail, Message
+  
+  def send_due_date_reminder(user_email, tasks_due):
+      # Send reminder email for upcoming due dates
+  ```
+- **Export/Import**: CSV/JSON export functionality for backup and analysis
+  ```python
+  @app.route('/export/tasks')
+  def export_tasks_csv():
+      # Generate CSV export of user's tasks
+  ```
+- **Dark Mode**: Theme switching capability with user preference storage
+  ```sql
+  ALTER TABLE users ADD COLUMN theme_preference TEXT DEFAULT 'light';
+  ```
+- **Offline Support**: Service worker for basic offline functionality
+  ```javascript
+  // New file: static/js/sw.js - Service Worker implementation
+  ```
+- **Progressive Web App**: PWA manifest for mobile installation
+  ```json
+  // New file: static/manifest.json
+  {
+    "name": "HSC Study Planner",
+    "short_name": "HSC Planner",
+    "start_url": "/",
+    "display": "standalone"
+  }
+  ```
+
+### 11.4 Code Quality & Testing Infrastructure
+
+**Testing Framework**
+- **Unit Tests**: Comprehensive test coverage with pytest
+  ```python
+  # New file: tests/test_app.py
+  import pytest
+  from Task_Organiser.app import create_app
+  
+  def test_task_creation():
+      # Test task creation functionality
+  ```
+- **Integration Tests**: End-to-end testing with Selenium
+  ```python
+  # New file: tests/test_integration.py
+  from selenium import webdriver
+  
+  def test_user_workflow():
+      # Test complete user journey
+  ```
+- **Error Handling**: Granular exception handling with proper logging
+  ```python
+  # Update to app.py
+  import logging
+  logging.basicConfig(level=logging.INFO)
+  
+  @app.errorhandler(404)
+  def not_found_error(error):
+      return render_template('404.html'), 404
+  ```
+- **Structured Logging**: Comprehensive logging system for debugging
+  ```python
+  # New file: utils/logger.py
+  import logging
+  from datetime import datetime
+  
+  def log_user_action(user_id, action, details):
+      # Log user actions for analytics
+  ```
+
+### 11.5 Accessibility & Compliance
+
+**WCAG 2.1 Compliance**
+- **ARIA Labels**: Screen reader support for all interactive elements
+  ```html
+  <!-- Update templates with ARIA labels -->
+  <button aria-label="Delete task" class="btn-delete">
+      <i class="fas fa-trash"></i>
+  </button>
+  ```
+- **Keyboard Navigation**: Full keyboard accessibility
+  ```javascript
+  // New file: static/js/accessibility.js
+  document.addEventListener('keydown', function(e) {
+      // Handle keyboard navigation
+  });
+  ```
+- **Color Contrast**: Verify WCAG AA compliance for all text elements
+- **Focus Management**: Proper focus indicators and trap for modals
+
+### 11.6 DevOps & Infrastructure
+
+**Deployment & Operations**
+- **Containerization**: Docker setup for consistent deployment
+  ```dockerfile
+  # New file: Dockerfile
+  FROM python:3.11-slim
+  WORKDIR /app
+  COPY requirements.txt .
+  RUN pip install -r requirements.txt
+  COPY . .
+  CMD ["python", "run.py"]
+  ```
+- **CI/CD Pipeline**: GitHub Actions for automated testing and deployment
+  ```yaml
+  # New file: .github/workflows/ci.yml
+  name: CI/CD Pipeline
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Run tests
+          run: python -m pytest
+  ```
+- **Backup Strategy**: Automated database backups
+  ```python
+  # New file: utils/backup.py
+  import shutil
+  from datetime import datetime
+  
+  def backup_database():
+      # Create timestamped backup of SQLite database
+  ```
+- **Monitoring**: Application performance monitoring
+  ```python
+  # New file: monitoring.py
+  from prometheus_client import Counter, Histogram
+  
+  task_operations = Counter('task_operations_total', 'Total task operations')
+  request_duration = Histogram('http_request_duration', 'HTTP request duration')
+  ```
+
+### 11.7 Integration Features
+
+**External Services & API**
+- **Calendar Integration**: Google Calendar/Outlook sync
+  ```python
+  # New file: integrations/calendar.py
+  from googleapiclient.discovery import build
+  
+  def sync_to_google_calendar(task):
+      # Sync task to Google Calendar
+  ```
+- **Team Features**: Multi-user task sharing (future enhancement)
+  ```sql
+  -- Future tables for collaboration
+  CREATE TABLE study_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      creator_id INTEGER NOT NULL,
+      FOREIGN KEY (creator_id) REFERENCES users(id)
+  );
+  ```
+- **RESTful API**: Mobile app support
+  ```python
+  # New routes in app.py
+  @app.route('/api/v1/tasks')
+  @login_required
+  def api_tasks():
+      # Return JSON API response
+  ```
+- **Analytics Dashboard**: Task completion statistics
+  ```python
+  @app.route('/analytics')
+  @login_required
+  def analytics():
+      # Show productivity metrics and trends
+  ```
+
+### 11.8 Updated File Structure
+
+```
+Task_Organiser_App/
+├── Task_Organiser/
+│   ├── app.py                    # Updated with new features
+│   ├── db.py                     # Updated with new tables
+│   ├── ml_model.py               # Polynomial Regression model
+│   ├── atar_scaling.py           # UAC scaling data
+│   ├── notifications.py          # NEW - Email notifications
+│   ├── utils/
+│   │   ├── logger.py             # NEW - Structured logging
+│   │   └── backup.py             # NEW - Database backups
+│   ├── integrations/
+│   │   └── calendar.py           # NEW - Calendar sync
+│   ├── monitoring.py             # NEW - Performance metrics
+│   ├── task_schema.sql           # Updated with all new tables
+│   ├── requirements.txt          # Updated with new dependencies
+│   ├── tests/
+│   │   ├── test_app.py           # NEW - Unit tests
+│   │   └── test_integration.py   # NEW - Integration tests
+│   ├── instance/
+│   │   └── taskmanager.db
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css        # Updated theme
+│   │   ├── js/
+│   │   │   ├── sw.js             # NEW - Service worker
+│   │   │   └── accessibility.js   # NEW - Accessibility
+│   │   └── manifest.json         # NEW - PWA manifest
+│   └── templates/
+│       ├── base.html             # Updated with accessibility
+│       ├── index.html            # Updated with new features
+│       ├── subjects.html         # Subject management
+│       ├── marks.html            # Assessment tracker
+│       ├── atar.html             # ATAR prediction
+│       ├── analytics.html        # NEW - Analytics dashboard
+│       ├── search.html           # NEW - Search results
+│       ├── task_templates.html   # NEW - Template management
+│       ├── add_task.html         # Updated with subject dropdown
+│       ├── edit_task.html        # Updated
+│       ├── login.html            # Updated
+│       ├── register.html         # Updated
+│       ├── about.html            # Updated
+│       ├── contact.html          # Updated
+│       └── 404.html              # NEW - Error page
+├── Dockerfile                    # NEW - Container setup
+├── docker-compose.yml            # NEW - Development environment
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # NEW - CI/CD pipeline
+├── run.py                        # Unchanged
+├── pytest.ini                   # NEW - Test configuration
+├── README.md                     # Updated
+└── DEPLOY.md                     # Updated with new env vars
+```
+
+### 11.9 Updated Dependencies
+
+**Add to requirements.txt:**
+```
+# Web framework
+Flask>=3.0.0
+
+# Security
+Flask-WTF>=1.2.0
+
+# Machine learning
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Testing
+pytest>=7.0.0
+pytest-flask>=1.2.0
+selenium>=4.0.0
+
+# Email notifications
+Flask-Mail>=0.9.1
+
+# Performance monitoring
+prometheus-client>=0.16.0
+
+# External integrations
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.1.0
+
+# File uploads
+Flask-Uploads>=3.0.0
+
+# Caching (optional)
+Flask-Caching>=2.0.0
+redis>=4.0.0
+```
+
+### 11.10 Additional Commit Strategy
+
+**Extended commit sequence (25+ commits):**
+```
+21. "Feature: implement task search with SQLite FTS"
+22. "Feature: add bulk operations for multi-select tasks"
+23. "Feature: implement recurring tasks with cron-like patterns"
+24. "Feature: add task dependencies system"
+25. "Feature: implement file attachments for tasks"
+26. "Feature: add task comments system"
+27. "Feature: create task templates for common HSC activities"
+28. "Feature: implement email notifications for due dates"
+29. "Feature: add CSV/JSON export functionality"
+30. "Feature: implement dark mode with user preferences"
+31. "Feature: add service worker for offline support"
+32. "Feature: create PWA manifest for mobile installation"
+33. "Testing: implement comprehensive unit test suite"
+34. "Testing: add integration tests with Selenium"
+35. "Accessibility: implement ARIA labels and keyboard navigation"
+36. "Accessibility: verify WCAG AA color contrast compliance"
+37. "Infrastructure: add Docker configuration"
+38. "Infrastructure: implement CI/CD pipeline with GitHub Actions"
+39. "Infrastructure: add automated database backup system"
+40. "Infrastructure: implement Prometheus monitoring"
+41. "Integration: add Google Calendar sync functionality"
+42. "API: create RESTful API endpoints for mobile support"
+43. "Analytics: build task completion statistics dashboard"
+44. "Performance: implement pagination for large task lists"
+45. "Performance: add database indexes and query optimization"
+46. "Performance: implement Redis caching layer"
+47. "Documentation: update API documentation and deployment guide"
+48. "Testing: comprehensive security audit and penetration testing"
+```
+
+These additional enhancements would transform the HSC Study Planner into a comprehensive, production-ready application with enterprise-level features, performance optimization, and robust testing infrastructure.

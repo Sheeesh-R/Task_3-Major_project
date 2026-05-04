@@ -6,21 +6,22 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6 col-sm-12">
-            <div class="card shadow-lg border-0 fade-in-up">
+            <div class="text-center mb-4">
+                <h1 class="fw-bold mb-3" style="color: var(--primary);">HSC Study Planner</h1>
+                <p class="text-secondary">Your academic journey starts here</p>
+            </div>
+            <div class="card border-0 fade-in-up" style="border-left: 4px solid var(--primary);">
                 <div class="card-body p-4 p-md-5">
                     <div class="text-center mb-4 mb-md-5">
-                        <div class="bg-gradient rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mb-md-4" style="width: 60px; height: 60px; background: var(--primary-gradient);">
-                            <i class="fas fa-sign-in-alt text-white fs-4"></i>
-                        </div>
                         <h2 class="fw-bold mb-2 mb-md-3">Welcome Back</h2>
-                        <p class="text-secondary">Sign in to access your academic task manager</p>
+                        <p class="text-secondary">Sign in to access your study planner</p>
                     </div>
                     
                     <form method="post">
                         <div class="mb-3 mb-md-4">
                             <label for="username" class="form-label">Username</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-gradient" style="background: var(--primary-gradient); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-user"></i>
                                 </span>
                                 <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
@@ -29,21 +30,21 @@
                         <div class="mb-3 mb-md-4">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-gradient" style="background: var(--primary-gradient); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-lock"></i>
                                 </span>
                                 <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
                             </div>
                         </div>
                         <div class="d-grid mb-3 mb-md-4">
-                            <button type="submit" class="btn btn-lg" style="background: var(--primary-gradient); color: white; border: none; font-weight: 600; padding: 0.75rem;">
+                            <button type="submit" class="btn btn-lg btn-primary">
                                 <i class="fas fa-sign-in-alt me-2"></i>Sign In
                             </button>
                         </div>
                     </form>
                     
                     <div class="text-center">
-                        <p class="mb-0">New to Task Manager? <a href="{{ url_for('register') }}" class="fw-bold" style="color: var(--primary-color);">Create an account</a></p>
+                        <p class="mb-0">New to HSC Planner? <a href="{{ url_for('register') }}" class="fw-bold" style="color: var(--primary);">Create an account</a></p>
                     </div>
                 </div>
             </div>

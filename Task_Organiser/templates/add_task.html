@@ -5,14 +5,12 @@
 {% block content %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 col-sm-12">
-      <div class="card shadow-lg border-0 overflow-hidden">
-        <!-- Gradient header -->
-        <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <div>
-            <h2 class="h2 mb-1 fw-bold">Add New Task</h2>
-            <p class="mb-0 opacity-75 small">Create a new task to stay organized</p>
+      <div class="card border-0 overflow-hidden" style="border-left: 4px solid var(--primary);">
+        <div class="card-body p-4 p-md-5">
+          <div class="mb-4">
+            <h2 class="fw-bold">Add New Task</h2>
+            <p class="text-secondary mb-0">Create a new task to stay organized</p>
           </div>
-        </div>
         
         <div class="card-body p-4 p-lg-5">
           <form method="post" action="{{ url_for('add_task') }}">
@@ -103,8 +101,7 @@
                 <i class="fas fa-times me-2"></i> Cancel
               </a>
               <button type="submit" 
-                      class="btn btn-lg px-4 py-2 d-flex align-items-center justify-content-center"
-                      style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; transition: all 0.3s ease;">
+                      class="btn btn-lg btn-primary d-flex align-items-center justify-content-center">
                 <i class="fas fa-save me-2"></i> Save Task
               </button>
             </div>
@@ -140,10 +137,6 @@
       color: white !important;
     }
     
-    /* Save button hover */
-    .btn:hover[style*="#667eea"] {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
-    }
     
     /* Category select color styling */
     #category_id {
