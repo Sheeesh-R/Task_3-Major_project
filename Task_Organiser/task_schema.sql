@@ -24,12 +24,49 @@ CREATE TABLE tasks (
     priority TEXT NOT NULL DEFAULT 'medium',
     status TEXT NOT NULL DEFAULT 'not_started',
     category_id INTEGER,
+    subject_id INTEGER,
     completed_at TEXT,
     FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (category_id) REFERENCES categories (id)
+    FOREIGN KEY (category_id) REFERENCES categories (id),
+    FOREIGN KEY (subject_id) REFERENCES subjects (id)
+);
+
+-- Create subjects table
+CREATE TABLE subjects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+-- Create assessment_results table
+CREATE TABLE assessment_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    task_name TEXT NOT NULL,
+    weight REAL NOT NULL,                -- Percentage weight e.g. 30.0
+    raw_mark REAL NOT NULL,              -- Mark achieved
+    max_mark REAL NOT NULL,              -- Mark out of
+    date_recorded TEXT,
+    FOREIGN KEY (subject_id) REFERENCES subjects (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 -- Insert default categories
 INSERT INTO categories (name, color) VALUES ('Work', '#007bff');
 INSERT INTO categories (name, color) VALUES ('Study', '#28a745');
 INSERT INTO categories (name, color) VALUES ('Personal', '#dc3545');
+
+-- Insert default HSC subjects (will be associated with users during app initialization)
+INSERT OR IGNORE INTO subjects (name, user_id) VALUES
+('English Advanced', 1),
+('Mathematics Advanced', 1),
+('Mathematics Extension 1', 1),
+('Mathematics Extension 2', 1),
+('Physics', 1),
+('Chemistry', 1),
+('Biology', 1),
+('Modern History', 1),
+('Economics', 1),
+('Business Studies', 1);
