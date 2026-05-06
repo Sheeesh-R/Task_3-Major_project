@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}ATAR Predictor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold mb-3" style="color: var(--primary);">ATAR Predictor</h1>
+                <p class="text-secondary">Estimate your ATAR based on current subject performance</p>
+            </div>
+
+            <!-- Input Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 fw-bold">Current Subject Marks</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('atar') }}">
+                        <div class="row g-3">
+                            {% for subject in subjects %}
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="number" class="form-control" id="mark_{{ loop.index }}" 
+                                           name="mark_{{ loop.index }}" value="{{ subject.raw_mark }}" 
+                                           min="0" max="100" step="0.1" placeholder="Enter mark">
+                                    <label for="mark_{{ loop.index }}" class="form-label">
+                                        {{ subject.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-chart-line me-2"></i>Predict My ATAR
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0 fw-bold">ATAR Prediction Results</h5>
+                </div>
+                <div class="card-body">
+                    <!-- ATAR Display -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block bg-success text-white rounded-circle p-4" style="width: 150px; height: 150px;">
+                            <div class="d-flex flex-column h-100 justify-content-center align-items-center">
+                                <small class="mb-1">Estimated ATAR</small>
+                                <h2 class="mb-0 fw-bold">{{ "%.1f"|format(estimated_atar) }}</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Breakdown Table -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Raw Mark</th>
+                                    <th>Scaled Mark</th>
+                                    <th>Contribution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subject in subjects %}
+                                <tr>
+                                    <td class="fw-semibold">{{ subject.name }}</td>
+                                    <td>{{ subject.raw_mark }}%</td>
+                                    <td class="text-success fw-semibold">{{ subject.scaled_mark }}%</td>
+                                    <td>{{ subject.contribution }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="3" class="text-end">Total Contribution:</th>
+                                    <th class="fw-bold">{{ "%.1f"|format(estimated_atar) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Chart Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="mb-3 fw-bold">Raw vs Scaled Marks Comparison</h6>
+                            <canvas id="marksChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> This is an estimate based on UAC scaling data. 
+                        Actual ATAR may vary based on assessment performance and other factors.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('marksChart').getContext('2d');
+    
+    const subjects = {{ subjects|tojson }};
+    const labels = subjects.map(s => s.name);
+    const rawMarks = subjects.map(s => s.raw_mark);
+    const scaledMarks = subjects.map(s => s.scaled_mark);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Raw Mark',
+                    data: rawMarks,
+                    backgroundColor: 'rgba(26, 58, 92, 0.6)',
+                    borderColor: 'rgba(26, 58, 92, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Scaled Mark',
+                    data: scaledMarks,
+                    backgroundColor: 'rgba(200, 151, 43, 0.6)',
+                    borderColor: 'rgba(200, 151, 43, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Mark (%)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Subjects'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

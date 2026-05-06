@@ -43,6 +43,27 @@ def create_app():
     
     os.makedirs(app.instance_path, exist_ok=True)
     init_app(app)
+    
+    # Database migration for subjects table
+    with app.app_context():
+        db = get_db()
+        try:
+            # Check if units column exists in subjects table
+            cursor = db.execute("PRAGMA table_info(subjects)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'units' not in columns:
+                db.execute('ALTER TABLE subjects ADD COLUMN units INTEGER NOT NULL DEFAULT 2')
+                print("Added 'units' column to subjects table")
+            
+            if 'target_mark' not in columns:
+                db.execute('ALTER TABLE subjects ADD COLUMN target_mark INTEGER')
+                print("Added 'target_mark' column to subjects table")
+                
+            db.commit()
+        except Exception as e:
+            print(f"Migration error: {e}")
+    
     register_routes(app)
 
     @app.before_request
@@ -86,6 +107,26 @@ def create_app():
         if isinstance(value, str):
             value = datetime.fromisoformat(value)
         return value.strftime(format)
+
+    @app.template_filter('truncate_title')
+    def truncate_title(title):
+        """Truncate title to first 3 words or 12 characters, whichever comes first"""
+        if not title:
+            return title
+        
+        # First try to get first 3 words
+        words = title.split()
+        if len(words) > 3:
+            truncated = ' '.join(words[:3])
+            # If 3 words are longer than 12 characters, truncate further
+            if len(truncated) > 12:
+                return truncated[:12] + '...'
+            return truncated + '...'
+        else:
+            # If 3 or fewer words, check if any word is longer than 12 characters
+            if len(title) > 12:
+                return title[:12] + '...'
+            return title
 
     return app
 
@@ -164,12 +205,14 @@ def register_routes(app):
         status = request.args.get('status')
         priority = request.args.get('priority')
         category_id = request.args.get('category')
+        subject_id = request.args.get('subject_id')
 
         # Build query
         query = '''
-            SELECT t.*, c.name as category_name, c.color as category_color
+            SELECT t.*, c.name as category_name, c.color as category_color, s.name as subject_name
             FROM tasks t
             LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN subjects s ON t.subject_id = s.id
             WHERE t.user_id = ?
         '''
         params = [g.user['id']]
@@ -186,6 +229,10 @@ def register_routes(app):
             query += ' AND t.category_id = ?'
             params.append(category_id)
 
+        if subject_id:
+            query += ' AND t.subject_id = ?'
+            params.append(subject_id)
+
         # Add sorting
         query += '''
             ORDER BY
@@ -201,13 +248,87 @@ def register_routes(app):
 
         tasks = db.execute(query, params).fetchall()
         categories = db.execute('SELECT * FROM categories ORDER BY name').fetchall()
+        
+        # Get subjects data for dashboard
+        try:
+            subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+            subjects_list = [dict(subject) for subject in subjects] if subjects else []
+            
+            # Add task counts and progress for each subject
+            for subject in subjects_list:
+                # Count tasks for this subject
+                task_count = db.execute('SELECT COUNT(*) as count FROM tasks WHERE user_id = ? AND subject_id = ?', 
+                                      (g.user['id'], subject['id'])).fetchone()
+                subject['task_count'] = task_count['count'] if task_count else 0
+                
+                # Count completed tasks
+                completed_count = db.execute('SELECT COUNT(*) as count FROM tasks WHERE user_id = ? AND subject_id = ? AND status = "completed"', 
+                                           (g.user['id'], subject['id'])).fetchone()
+                completed = completed_count['count'] if completed_count else 0
+                
+                # Calculate progress
+                if subject['task_count'] > 0:
+                    subject['progress'] = int((completed / subject['task_count']) * 100)
+                else:
+                    subject['progress'] = 0
+                    
+                # Get highest priority task for this subject
+                priority_task = db.execute('''
+                    SELECT title, priority, due_date 
+                    FROM tasks 
+                    WHERE user_id = ? AND subject_id = ? AND status != "completed"
+                    ORDER BY 
+                        CASE priority 
+                            WHEN 'high' THEN 1 
+                            WHEN 'medium' THEN 2 
+                            WHEN 'low' THEN 3 
+                            ELSE 4 
+                        END,
+                        due_date ASC
+                    LIMIT 1
+                ''', (g.user['id'], subject['id'])).fetchone()
+                
+                subject['priority_task'] = dict(priority_task) if priority_task else None
+                subject['completed_tasks'] = completed
+                
+        except Exception as e:
+            subjects_list = []
+
+        # Get current subject info for header
+        current_subject = None
+        assessment_results = []
+        if subject_id:
+            current_subject = db.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', 
+                                        (subject_id, g.user['id'])).fetchone()
+            
+            # Fetch assessment results for this subject (assignment tasks only)
+            if current_subject:
+                assessment_results = db.execute('''
+                    SELECT ar.task_name, ar.weight, ar.raw_mark, ar.max_mark, ar.date_recorded
+                    FROM assessment_results ar
+                    JOIN tasks t ON ar.task_name = t.title
+                    WHERE ar.subject_id = ? AND ar.user_id = ? AND t.category_id = (
+                        SELECT id FROM categories WHERE name = 'Assignments'
+                    )
+                    ORDER BY ar.date_recorded ASC
+                ''', (subject_id, g.user['id'])).fetchall()
+                
+                # Convert to list of dictionaries and calculate percentage
+                assessment_results = [dict(result) for result in assessment_results]
+                for i, result in enumerate(assessment_results):
+                    result['percentage'] = round((result['raw_mark'] / result['max_mark']) * 100, 1) if result['max_mark'] > 0 else 0
+                    result['test_number'] = i + 1
 
         return render_template('index.html',
                              tasks=tasks,
                              categories=categories,
+                             subjects=subjects_list,
+                             current_subject=current_subject,
+                             assessment_results=assessment_results,
                              current_status=status or 'all',
                              current_priority=priority or 'all',
-                             current_category=category_id or 'all')
+                             current_category=category_id or 'all',
+                             subject_id=subject_id)
 
     @app.route('/task/add', methods=['GET', 'POST'])
     @login_required
@@ -220,7 +341,7 @@ def register_routes(app):
             due_date = request.form.get('due_date')
             priority = request.form.get('priority', 'medium')
             status = request.form.get('status', 'not_started')
-            category_id = request.form.get('category_id')
+            subject_id = request.form.get('subject_id')
 
             if not title:
                 flash('Title is required', 'error')
@@ -230,9 +351,9 @@ def register_routes(app):
                     due_date = due_date if due_date else None
 
                     db.execute(
-                        'INSERT INTO tasks (title, description, due_date, priority, status, category_id, user_id) '
+                        'INSERT INTO tasks (title, description, due_date, priority, status, subject_id, user_id) '
                         'VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (title, description, due_date, priority, status, category_id, g.user['id'])
+                        (title, description, due_date, priority, status, subject_id, g.user['id'])
                     )
                     db.commit()
                     flash('Task added successfully!', 'success')
@@ -241,8 +362,8 @@ def register_routes(app):
                     db.rollback()
                     flash(f'Error adding task: {str(e)}', 'error')
 
-        categories = db.execute('SELECT * FROM categories ORDER BY name').fetchall()
-        return render_template('add_task.html', categories=categories)
+        subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+        return render_template('add_task.html', subjects=subjects)
 
     @app.route('/task/<int:task_id>/edit', methods=['GET', 'POST'])
     @login_required
@@ -260,7 +381,7 @@ def register_routes(app):
             due_date = request.form.get('due_date')
             priority = request.form.get('priority', 'medium')
             status = request.form.get('status', 'not_started')
-            category_id = request.form.get('category_id')
+            subject_id = request.form.get('subject_id')
 
             if not title:
                 flash('Title is required', 'error')
@@ -276,8 +397,8 @@ def register_routes(app):
 
                     db.execute(
                         'UPDATE tasks SET title = ?, description = ?, due_date = ?, priority = ?, '
-                        'status = ?, category_id = ?, completed_at = ? WHERE id = ? AND user_id = ?',
-                        (title, description, due_date, priority, status, category_id, completed_at, task_id, g.user['id'])
+                        'status = ?, subject_id = ?, completed_at = ? WHERE id = ? AND user_id = ?',
+                        (title, description, due_date, priority, status, subject_id, completed_at, task_id, g.user['id'])
                     )
                     db.commit()
                     flash('Task updated successfully!', 'success')
@@ -286,8 +407,8 @@ def register_routes(app):
                     db.rollback()
                     flash(f'Error updating task: {str(e)}', 'error')
 
-        categories = db.execute('SELECT * FROM categories ORDER BY name').fetchall()
-        return render_template('edit_task.html', task=dict(task), categories=categories)
+        subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+        return render_template('edit_task.html', task=dict(task), subjects=subjects)
 
     @app.route('/task/<int:task_id>/delete', methods=['POST'])
     @login_required
@@ -327,6 +448,112 @@ def register_routes(app):
             flash(f'Error updating task status: {str(e)}', 'error')
 
         return redirect(url_for('index'))
+
+    # Subjects page
+    @app.route('/subjects')
+    @login_required
+    def subjects():
+        db = get_db()
+        try:
+            # Check if units column exists and select appropriate columns
+            cursor = db.execute("PRAGMA table_info(subjects)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'units' in columns and 'target_mark' in columns:
+                subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+            else:
+                # Fallback for older schema
+                subjects = db.execute('SELECT id, name, user_id FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+            
+            # Convert to list of dictionaries and add default values for missing columns
+            subjects_list = []
+            for subject in subjects:
+                subject_dict = dict(subject)
+                if 'units' not in subject_dict:
+                    subject_dict['units'] = 2
+                if 'target_mark' not in subject_dict:
+                    subject_dict['target_mark'] = None
+                if 'estimated_mark' not in subject_dict:
+                    subject_dict['estimated_mark'] = 0
+                if 'task_count' not in subject_dict:
+                    subject_dict['task_count'] = 0
+                subjects_list.append(subject_dict)
+            
+            return render_template('subjects.html', subjects=subjects_list)
+        except Exception as e:
+            # If subjects table doesn't exist or has no data, return empty list
+            return render_template('subjects.html', subjects=[])
+
+    # Add subject route
+    @app.route('/subjects/add', methods=['POST'])
+    @login_required
+    def add_subject():
+        print("DEBUG: add_subject route reached")  # Debug print
+        db = get_db()
+        try:
+            subject_name = request.form.get('subject_name')
+            units = int(request.form.get('subject_units', 2))
+            target_mark = request.form.get('target_mark')
+            
+            print(f"DEBUG: subject_name={subject_name}, units={units}, target_mark={target_mark}")  # Debug print
+            
+            if subject_name:
+                # Check if subject already exists for this user
+                existing = db.execute(
+                    'SELECT id FROM subjects WHERE user_id = ? AND name = ?',
+                    (g.user['id'], subject_name)
+                ).fetchone()
+                
+                if existing:
+                    flash(f'Subject "{subject_name}" already exists!', 'error')
+                    print("DEBUG: Subject already exists for this user")  # Debug print
+                else:
+                    cursor = db.execute(
+                        'INSERT INTO subjects (user_id, name, units, target_mark) VALUES (?, ?, ?, ?)',
+                        (g.user['id'], subject_name, units, target_mark)
+                    )
+                    db.commit()
+                    flash(f'Subject "{subject_name}" added successfully!', 'success')
+                    print("DEBUG: Subject added successfully")  # Debug print
+            else:
+                flash('Please select a subject name.', 'error')
+                print("DEBUG: No subject name provided")  # Debug print
+        except Exception as e:
+            db.rollback()
+            error_msg = str(e)
+            if "UNIQUE constraint failed: subjects.name" in error_msg:
+                flash(f'Subject "{subject_name}" already exists in the system. Please choose a different name or contact support.', 'error')
+            else:
+                flash(f'Error adding subject: {error_msg}', 'error')
+            print(f"DEBUG: Error: {error_msg}")  # Debug print
+        
+        return redirect(url_for('subjects'))
+
+    # Test route to verify routing works
+    @app.route('/test')
+    def test():
+        return "Test route works!"
+
+    # ATAR Predictor page
+    @app.route('/atar', methods=['GET', 'POST'])
+    @login_required
+    def atar():
+        if request.method == 'POST':
+            # Handle ATAR prediction (placeholder for now)
+            flash('ATAR prediction feature coming soon!', 'info')
+            return redirect(url_for('atar'))
+        
+        # Sample data for demonstration
+        sample_subjects = [
+            {'name': 'Mathematics Advanced', 'raw_mark': 78, 'scaled_mark': 82, 'contribution': 16.4},
+            {'name': 'English Advanced', 'raw_mark': 82, 'scaled_mark': 82, 'contribution': 16.4},
+            {'name': 'Chemistry', 'raw_mark': 75, 'scaled_mark': 81, 'contribution': 16.2},
+            {'name': 'Physics', 'raw_mark': 73, 'scaled_mark': 78, 'contribution': 15.6},
+            {'name': 'Legal Studies', 'raw_mark': 80, 'scaled_mark': 76, 'contribution': 15.2}
+        ]
+        estimated_atar = 85.6  # Sample ATAR
+        
+        return render_template('atar.html', subjects=sample_subjects, estimated_atar=estimated_atar)
 
     # About page
     @app.route('/about')

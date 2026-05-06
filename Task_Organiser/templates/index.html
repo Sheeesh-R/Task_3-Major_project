@@ -607,142 +607,276 @@
       border: 2px solid #0d6efd !important;
       box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
-  }
-</style>
-  <!-- Page Header -->
-  <div class="row mb-5 fade-in-up">
-    <div class="col-12">
-      <div class="text-center">
+    
+    .status-bar[data-status="primary"] {
+      background: var(--bs-primary) !important;
+    }
+    
+    .status-bar[data-status="success"] {
+      background: var(--bs-success) !important;
+    }
+    
+    .status-bar[data-status="danger"] {
+      background: var(--bs-danger) !important;
+    }
+    
+    .status-bar[data-status="warning"] {
+      background: var(--bs-warning) !important;
+    }
+    
+    .status-bar[data-status="info"] {
+      background: var(--bs-info) !important;
+    }
+    
+    .status-bar[data-status="secondary"] {
+      background: var(--bs-secondary) !important;
+    }
+    
+    .status-bar[data-status="light"] {
+      background: var(--bs-light) !important;
+    }
+    
+        
+    .category-badge {
+      background-color: var(--category-color, var(--bs-primary)) !important;
+      color: white !important;
+    }
+    
+    /* Expanded task card styling */
+    .expanded-task-card {
+      transition: all 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .expanded-task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .assessment-scores {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 200px;
+      width: 100%;
+    }
+    
+    /* Responsive styling for expanded cards */
+    @media (max-width: 992px) {
+      .expanded-task-card .row {
+        flex-direction: column;
+      }
+      
+      .expanded-task-card .col-lg-4 {
+        border-left: none !important;
+        border-top: 1px solid var(--border);
+        margin-top: 1rem;
+        padding-top: 1rem;
+      }
+      
+      .chart-container {
+        height: 250px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .expanded-task-card .card-body {
+        padding: 1.5rem !important;
+      }
+      
+      .expanded-task-card h4 {
+        font-size: 1.25rem !important;
+      }
+      
+      .assessment-scores {
+        max-height: 150px;
+      }
+      
+      .chart-container {
+        height: 200px;
+      }
+      
+      .expanded-task-card .task-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      
+      .expanded-task-card .task-actions .btn {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .expanded-task-card .card-body {
+        padding: 1rem !important;
+      }
+      
+      .expanded-task-card h4 {
+        font-size: 1.125rem !important;
+      }
+      
+      .expanded-task-card h5 {
+        font-size: 1rem !important;
+      }
+      
+      .expanded-task-card h6 {
+        font-size: 0.875rem !important;
+      }
+      
+      .chart-container {
+        height: 180px;
+      }
+      
+      .expanded-task-card .row.g-3 {
+        gap: 0.5rem;
+      }
+      
+      .expanded-task-card .col-md-4 {
+        margin-bottom: 0.5rem;
+      }
+    }
+  </style>
+  <!-- Page Header with Calendar and Dashboard (only show when not filtering by subject) -->
+  {% if not current_subject %}
+  <div class="row g-3 g-md-4 mb-5 fade-in-up">
+    <!-- Left Column: Header Text and Calendar -->
+    <div class="col-12 col-lg-8 order-lg-1">
+      <!-- Header Text -->
+      <div class="text-center text-lg-start mb-4">
         <h1 class="display-4 fw-bold mb-3" style="color: var(--primary);">HSC Study Dashboard</h1>
         <p class="lead text-secondary">Manage your academic workflow with precision and style</p>
       </div>
-    </div>
-  </div>
-
-  <!-- Filters and Overview Row -->
-  <div class="row g-3 g-md-4 mb-4">
-    <!-- Filters and Overview Cards -->
-    <div class="col-12 col-lg-8 order-lg-1">
-      <!-- Filters -->
-      <div class="card border-0 mb-3 mb-md-4">
-        <div class="card-body p-3 p-md-4">
-          <div class="d-flex align-items-center mb-3">
-            <h5 class="mb-0 fw-bold">Filters</h5>
-          </div>
-          
-          <!-- Filter controls -->
-          <div class="row g-2 g-md-3 align-items-center" id="filterForm">
-            <div class="col-md-3 col-sm-6 col-12">
-              <label for="status" class="form-label">Status</label>
-              <div class="filter-dropdown">
-                <select class="form-select form-select-sm" id="status" name="status">
-                  <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
-                  <option value="not_started" {% if current_status == 'not_started' %}selected{% endif %}>Not Started</option>
-                  <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                  <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
-                </select>
-                <i class="fas fa-chevron-down"></i>
-              </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-12">
-              <label for="priority" class="form-label">Priority</label>
-              <div class="filter-dropdown">
-                <select class="form-select form-select-sm" id="priority" name="priority">
-                  <option value="all" {% if current_priority == 'all' %}selected{% endif %}>All Priorities</option>
-                  <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
-                  <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
-                  <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
-                </select>
-                <i class="fas fa-chevron-down"></i>
-              </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-12">
-              <label for="category" class="form-label">Category</label>
-              <div class="filter-dropdown">
-                <select class="form-select form-select-sm" id="category" name="category">
-                  <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
-                  {% for category in categories %}
-                    <option value="{{ category.id }}" {% if current_category|string == category.id|string %}selected{% endif %}>
-                      {{ category.name }}
-                    </option>
-                  {% endfor %}
-                </select>
-                <i class="fas fa-chevron-down"></i>
-              </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-12">
-              <label class="form-label">&nbsp;</label>
-              <div class="d-grid gap-2">
-                <button type="button" class="btn btn-primary btn-sm" id="applyFilters">
-                  <i class="fas fa-check me-1"></i>Apply Filters
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
-                  <i class="fas fa-times me-1"></i>Clear All
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
       
-      <!-- Overview Cards -->
-      <div class="row g-2 g-md-3">
-        <div class="col-6 col-md-3">
-          <div class="card border-0 h-100 filter-card fade-in-up" data-status="all" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; border-left: 4px solid var(--primary);" onclick="setFilterFromCard(this)">
-            <div class="card-body p-2 p-md-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <small class="text-secondary d-block fw-semibold">Total Tasks</small>
-                  <h4 class="mb-0 fw-bold">{{ tasks|length }}</h4>
+      <!-- Filters and Overview Section (stretched to calendar height) -->
+      <div class="row g-3 g-md-4 mb-4 align-items-start">
+        <!-- Filters and Overview Cards -->
+        <div class="col-12">
+          <!-- Filters -->
+          <div class="card border-0 mb-3 mb-md-4">
+            <div class="card-body p-3 p-md-4">
+              <div class="d-flex align-items-center mb-3">
+                <h5 class="mb-0 fw-bold">Filters</h5>
+              </div>
+              
+              <!-- Filter controls -->
+              <div class="row g-2 g-md-3 align-items-center" id="filterForm">
+                <div class="col-md-3 col-sm-6 col-12">
+                  <label for="status" class="form-label">Status</label>
+                  <div class="filter-dropdown">
+                    <select class="form-select form-select-sm" id="status" name="status">
+                      <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
+                      <option value="not_started" {% if current_status == 'not_started' %}selected{% endif %}>Not Started</option>
+                      <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                      <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                  </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--primary);">
-                  <i class="fas fa-tasks text-white" style="font-size: 1.25rem;"></i>
+                <div class="col-md-3 col-sm-6 col-12">
+                  <label for="priority" class="form-label">Priority</label>
+                  <div class="filter-dropdown">
+                    <select class="form-select form-select-sm" id="priority" name="priority">
+                      <option value="all" {% if current_priority == 'all' %}selected{% endif %}>All Priorities</option>
+                      <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
+                      <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
+                      <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                  </div>
                 </div>
+                <div class="col-md-3 col-sm-6 col-12">
+                  <label for="category" class="form-label">Category</label>
+                  <div class="filter-dropdown">
+                    <select class="form-select form-select-sm" id="category" name="category">
+                      <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+                      {% for category in categories %}
+                        <option value="{{ category.id }}" {% if current_category|string == category.id|string %}selected{% endif %}>
+                          {{ category.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                  </div>
+                </div>
+                <div class="col-md-3 col-sm-6 col-12">
+                  <label class="form-label">&nbsp;</label>
+                  <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" id="applyFilters">
+                      <i class="fas fa-check me-1"></i>Apply Filters
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                      <i class="fas fa-times me-1"></i>Clear All
+                    </button>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card border-0 h-100 filter-card fade-in-up" data-status="not_started,in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.1s; border-left: 4px solid var(--warning);" onclick="setFilterFromCard(this)">
-            <div class="card-body p-2 p-md-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <small class="text-secondary d-block fw-semibold">In Progress</small>
-                  <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '!=', 'completed')|list|length }}</h4>
-                </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--warning);">
-                  <i class="fas fa-clock text-white" style="font-size: 1.25rem;"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card border-0 h-100 filter-card fade-in-up" data-status="completed" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.2s; border-left: 4px solid var(--success);" onclick="setFilterFromCard(this)">
-            <div class="card-body p-2 p-md-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <small class="text-secondary d-block fw-semibold">Completed</small>
-                  <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'completed')|list|length }}</h4>
-                </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--success);">
-                  <i class="fas fa-check-circle text-white" style="font-size: 1.25rem;"></i>
+          
+          <!-- Overview Cards -->
+          <div class="row g-2 g-md-3">
+            <div class="col-6 col-md-3">
+              <div class="card border-0 h-100 filter-card fade-in-up" data-status="all" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; border-left: 4px solid var(--primary);" onclick="setFilterFromCard(this)">
+                <div class="card-body p-2 p-md-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-secondary d-block fw-semibold">Total Tasks</small>
+                      <h4 class="mb-0 fw-bold">{{ tasks|length }}</h4>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--primary);">
+                      <i class="fas fa-tasks text-white" style="font-size: 1.25rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card border-0 h-100 filter-card fade-in-up" data-status="in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.3s; border-left: 4px solid var(--info);" onclick="setFilterFromCard(this)">
-            <div class="card-body p-2 p-md-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <small class="text-secondary d-block fw-semibold">Active Now</small>
-                  <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'in_progress')|list|length }}</h4>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 h-100 filter-card fade-in-up" data-status="not_started,in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.1s; border-left: 4px solid var(--warning);" onclick="setFilterFromCard(this)">
+                <div class="card-body p-2 p-md-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-secondary d-block fw-semibold">In Progress</small>
+                      <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '!=', 'completed')|list|length }}</h4>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--warning);">
+                      <i class="fas fa-clock text-white" style="font-size: 1.25rem;"></i>
+                    </div>
+                  </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--info);">
-                  <i class="fas fa-spinner text-white" style="font-size: 1.25rem;"></i>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 h-100 filter-card fade-in-up" data-status="completed" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.2s; border-left: 4px solid var(--success);" onclick="setFilterFromCard(this)">
+                <div class="card-body p-2 p-md-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-secondary d-block fw-semibold">Completed</small>
+                      <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'completed')|list|length }}</h4>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--success);">
+                      <i class="fas fa-check-circle text-white" style="font-size: 1.25rem;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 h-100 filter-card fade-in-up" data-status="in_progress" data-priority="all" data-category="all" style="cursor: pointer; transition: all 0.3s ease; animation-delay: 0.3s; border-left: 4px solid var(--info);" onclick="setFilterFromCard(this)">
+                <div class="card-body p-2 p-md-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-secondary d-block fw-semibold">Active Now</small>
+                      <h4 class="mb-0 fw-bold">{{ tasks|selectattr('status', '==', 'in_progress')|list|length }}</h4>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: var(--info);">
+                      <i class="fas fa-spinner text-white" style="font-size: 1.25rem;"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -750,182 +884,457 @@
         </div>
       </div>
     </div>
-
-    <!-- Calendar Section -->
+    
+    <!-- Right Column: Calendar -->
     <div class="col-12 col-lg-4 order-lg-2">
-      <div class="card border-0 fade-in-up" style="animation-delay: 0.4s;">
-        <div class="card-body p-0">
-          <button class="btn w-100 text-start p-3 p-md-4 border-0 d-flex justify-content-between align-items-center calendar-header-btn" type="button" data-bs-toggle="collapse" data-bs-target="#calendarCollapse" aria-expanded="true" aria-controls="calendarCollapse" style="background: var(--primary); color: white;">
+      <div class="card border-0 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="card-body p-3 p-md-4">
+          <!-- Calendar Header -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold" style="color: var(--primary);">
+              <i class="fas fa-calendar-alt me-2"></i>Academic Calendar
+            </h5>
             <div class="d-flex align-items-center">
-              <span class="fw-bold fs-6">Academic Calendar</span>
+              <button class="btn btn-sm btn-outline-primary me-2" id="prev-month" title="Previous month" style="border-radius: var(--border-radius-md);">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="btn btn-sm btn-primary mx-1 d-flex align-items-center" id="today" title="Go to current month" style="border-radius: var(--border-radius-md);">
+                <i class="fas fa-calendar-day me-1"></i>
+                <span class="d-none d-sm-inline">Today</span>
+              </button>
+              <button class="btn btn-sm btn-outline-primary ms-2" id="next-month" title="Next month" style="border-radius: var(--border-radius-md);">
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
-            <div class="d-flex align-items-center">
-              <i class="fas fa-chevron-down"></i>
+          </div>
+          
+          <!-- Month Year Display -->
+          <h6 class="mb-3 text-center fw-bold" id="current-month-year" style="color: var(--text-primary);">November 2025</h6>
+          
+          <!-- Calendar Grid -->
+          <div class="calendar">
+            <div class="calendar-weekdays">
+              <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
             </div>
-          </button>
-          <div class="collapse show" id="calendarCollapse">
-            <div class="p-3 p-md-4 pt-2 pt-md-3">
-              <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-                <h6 class="mb-0 fw-bold" id="current-month-year" style="color: var(--text-primary);">November 2025</h6>
-                <div class="d-flex align-items-center">
-                  <button class="btn btn-sm btn-outline-primary me-2" id="prev-month" title="Previous month" style="border-radius: var(--border-radius-md);">
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <button class="btn btn-sm btn-primary mx-1 d-flex align-items-center" id="today" title="Go to current month" style="border-radius: var(--border-radius-md);">
-                    <i class="fas fa-calendar-day me-1"></i>
-                    <span class="d-none d-sm-inline">Today</span>
-                  </button>
-                  <button class="btn btn-sm btn-outline-primary ms-2" id="next-month" title="Next month" style="border-radius: var(--border-radius-md);">
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="calendar">
-                <div class="calendar-weekdays">
-                  <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-                </div>
-                <div class="calendar-days" id="calendar-days"></div>
-              </div>
-            </div>
+            <div class="calendar-days" id="calendar-days"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Task List Section -->
-  <div class="container-fluid mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div class="d-flex align-items-center">
-        <h2 class="mb-0 fw-bold me-3">Task Collection</h2>
-        <button class="btn btn-outline-primary btn-sm me-2" data-href="{{ url_for('add_task') }}" onclick="window.location.href=this.dataset.href" title="Add New Task" style="border-radius: var(--border-radius-md); font-weight: 600;">
-          <i class="fas fa-plus me-1"></i> Add task
-        </button>
-        <button class="btn btn-outline-primary btn-sm me-2" onclick="location.reload()" title="Reload Page" style="border-radius: var(--border-radius-md); font-weight: 600;">
-          <i class="fas fa-sync-alt"></i> Reload
-        </button>
-        <div class="dropdown">
-          <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: var(--border-radius-md); font-weight: 600;">
-            <i class="fas fa-sort me-2"></i> Sort Tasks
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-            <li><a class="dropdown-item sort-option" href="#" data-sort="due_date">Due Date (Earliest)</a></li>
-            <li><a class="dropdown-item sort-option" href="#" data-sort="-due_date">Due Date (Latest)</a></li>
-            <li><a class="dropdown-item sort-option" href="#" data-sort="priority">Priority (High to Low)</a></li>
-            <li><a class="dropdown-item sort-option" href="#" data-sort="-priority">Priority (Low to High)</a></li>
-            <li><a class="dropdown-item sort-option" href="#" data-sort="title">Title (A to Z)</a></li>
-            <li><a class="dropdown-item sort-option" href="#" data-sort="-title">Title (Z to A)</a></li>
-          </ul>
-        </div>
+  <!-- Task Dashboard (full width, extends under calendar - only show when not filtering by subject) -->
+  {% if not current_subject %}
+  {% if current_subject %}
+  <!-- Subject-Specific Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+    <div class="d-flex align-items-center">
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      </a>
+      <div>
+        <h2 class="mb-0 fw-bold">{{ current_subject.name }} Tasks</h2>
+        <small class="text-muted">{{ current_subject.units }} unit subject</small>
       </div>
     </div>
+    <div class="d-flex align-items-center">
+      <button class="btn btn-primary btn-sm me-2" data-href="{{ url_for('add_task') }}?subject_id={{ current_subject.id }}" onclick="window.location.href=this.dataset.href" title="Add Task" style="border-radius: var(--border-radius-md); font-weight: 600;">
+        <i class="fas fa-plus me-1"></i> Add Task
+      </button>
+    </div>
+  </div>
+  {% else %}
+  <!-- Regular Dashboard Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+    <div class="d-flex align-items-center">
+      <h2 class="mb-0 fw-bold me-3">Task Dashboard</h2>
+      <button class="btn btn-primary btn-sm me-2" data-href="{{ url_for('add_task') }}" onclick="window.location.href=this.dataset.href" title="Add Task" style="border-radius: var(--border-radius-md); font-weight: 600;">
+        <i class="fas fa-plus me-1"></i> Add Task
+      </button>
+      <button class="btn btn-outline-primary btn-sm me-2" data-href="{{ url_for('index') }}?view=all" onclick="window.location.href=this.dataset.href" title="View All Tasks" style="border-radius: var(--border-radius-md); font-weight: 600;">
+        <i class="fas fa-list me-1"></i> All Tasks
+      </button>
+    </div>
+  </div>
+  {% endif %}
 
-    <!-- Tasks List -->
-    <div id="task-container" class="row g-3 g-md-4">
-      {% if tasks %}
-        {% for task in tasks %}
-          {% set status_class = {
-            'not_started': 'secondary',
-            'in_progress': 'warning', 
-            'completed': 'success'
-          } %}
-          {% set priority_class = {
-            'high': 'danger',
-            'medium': 'warning',
-            'low': 'info'
-          } %}
-          
-          <div class="col-12 col-md-6 col-lg-4 task-item fade-in-up" 
-               data-task-id="{{ task.id }}" 
-               data-status="{{ task.status }}" 
-               data-priority="{{ task.priority }}" 
-               data-category="{{ task.category_id or 'all' }}"
-               data-due-date="{{ task.due_date or '' }}"
-               data-animation-delay="{{ loop.index }}">
-            <div class="card border-0 h-100 position-relative overflow-hidden">
-              <!-- Status indicator bar -->
-              <div class="position-absolute top-0 start-0 w-100 status-indicator-{{ task.status }}" style="height: 4px;"></div>
-              
-              <div class="card-body d-flex flex-column pt-4">
-                <!-- Header with title and actions -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <div class="d-flex align-items-center flex-grow-1">
-                    <div class="task-toggle me-2">
-                      <input type="checkbox" 
-                             class="form-check-input" 
-                             id="task-{{ task.id }}" 
-                             {% if task.status == 'completed' %}checked{% endif %}
-                             data-task-id="{{ task.id }}" onchange="toggleTaskStatus(this)"
-                             style="width: 20px; height: 20px; cursor: pointer; border-radius: 50%;">
-                    </div>
-                    <div class="flex-grow-1 d-flex align-items-center">
-                      <h6 class="card-title fw-bold mb-0 {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %} me-2">
-                        {{ task.title }}
-                      </h6>
-                      <div class="task-actions d-flex gap-1">
-                        <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                          <i class="fas fa-edit fs-6"></i>
-                        </a>
-                        <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                          <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border: none; background: transparent;">
-                            <i class="fas fa-trash fs-6"></i>
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Description -->
-                {% if task.description %}
-                <p class="card-text text-muted mb-3">{{ task.description[:60] }}{% if task.description|length > 60 %}...{% endif %}</p>
-                {% endif %}
-                
-                <!-- Spacer -->
-                <div class="flex-grow-1"></div>
-                
-                <!-- Footer with badges -->
-                <div class="border-top pt-3">
-                  {% if task.due_date %}
-                  <div class="d-flex align-items-center mb-2">
-                    <i class="far fa-calendar text-muted me-2"></i>
-                    <span class="text-muted small">{{ task.due_date|format_datetime }}</span>
-                  </div>
-                  {% endif %}
-                  
-                  <div class="d-flex flex-wrap gap-1">
-                    <span class="badge bg-{{ status_class[task.status] }} rounded-pill px-2 py-1">
-                      {{ task.status|replace('_', ' ')|title }}
-                    </span>
-                    <span class="badge bg-{{ priority_class[task.priority] }} rounded-pill px-2 py-1">
-                      {{ task.priority|title }}
-                    </span>
-                    {% if task.category %}
-                    <span class="badge rounded-pill px-2 py-1 category-badge-dynamic" data-category-color="{{ task.category.color if task.category else '#64748b' }}">
-                      {{ task.category.name }}
-                    </span>
+  <!-- Subject Cards Grid (full width, extends under calendar - only show when not filtering by subject) -->
+  {% if not current_subject %}
+  <div class="row g-3 g-md-4 mx-0" id="subject-cards">
+    {% if subjects %}
+      {% for subject in subjects %}
+      <div class="col-12 col-md-6 col-lg-3 px-2">
+        <div class="card card-subject h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title fw-bold mb-0">{{ subject.name }}</h5>
+              <span class="badge bg-primary">{{ subject.units }}u</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress mb-3" style="height: 8px;">
+              <div class="progress-bar bg-primary" role="progressbar" 
+                   data-progress="{{ subject.progress }}"
+                    aria-valuenow="{{ subject.progress }}" 
+                    aria-valuemin="0" aria-valuemax="100">
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <small class="text-muted">{{ subject.completed_tasks }} / {{ subject.task_count }} tasks complete</small>
+              <small class="text-muted">Progress: {{ subject.progress }}%</small>
+            </div>
+            
+            <!-- Highest Priority Task -->
+            {% if subject.priority_task %}
+            <div class="card border-0 bg-{{ 'warning' if subject.priority_task.priority == 'high' else 'light' }} py-2 mb-3">
+              <div class="card-body p-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-{{ 'exclamation-triangle' if subject.priority_task.priority == 'high' else 'flag' }} text-{{ 'warning' if subject.priority_task.priority == 'high' else 'primary' }} me-2"></i>
+                  <div class="flex-grow-1">
+                    <strong class="text-{{ 'dark' if subject.priority_task.priority == 'high' else 'primary' }}">{{ subject.priority_task.title|truncate_title }}</strong>
+                    {% if subject.priority_task.due_date %}
+                    <br><small class="text-muted">Due: {{ subject.priority_task.due_date }}</small>
                     {% endif %}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="col-12">
-          <div class="text-center py-5" id="no-tasks-msg">
-            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <i class="fas fa-clipboard-list text-muted fs-2"></i>
+            {% else %}
+            <div class="card border-0 bg-light py-2 mb-3">
+              <div class="card-body p-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <small class="text-muted">No pending tasks</small>
+                </div>
+              </div>
             </div>
-            <h5 class="text-muted mb-3">No tasks found</h5>
-            <p class="text-muted mb-4">Start by creating your first task to get organized!</p>
-            <a href="{{ url_for('add_task') }}" class="btn btn-primary">
-              <i class="fas fa-plus me-2"></i>Create Your First Task
-            </a>
+            {% endif %}
+            
+            <!-- View All Button -->
+            <div class="text-end">
+              <a href="{{ url_for('index') }}?subject_id={{ subject.id }}" class="btn btn-outline-primary btn-sm">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+              </a>
+            </div>
           </div>
         </div>
-      {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <!-- No Subjects State -->
+      <div class="col-12 px-2">
+        <div class="text-center py-5">
+          <i class="fas fa-book text-muted mb-4" style="font-size: 4rem;"></i>
+          <h3 class="text-muted mb-3">No Subjects Yet</h3>
+          <p class="text-muted mb-4">Add your first subject to start organizing your HSC studies</p>
+          <a href="{{ url_for('subjects') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Add Your First Subject
+          </a>
+        </div>
+      </div>
+    {% endif %}
+    
+    <!-- Add Subject Card (always visible when subjects exist) -->
+    {% if subjects %}
+    <div class="col-12 col-md-6 col-lg-3 px-2">
+      <div class="card h-100 border-2 border-dashed" style="border-color: var(--border); min-height: 280px;">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+          <i class="fas fa-plus-circle text-muted mb-3" style="font-size: 3rem;"></i>
+          <h5 class="text-muted mb-2">Add New Subject</h5>
+          <p class="text-muted small mb-3">Track another HSC subject</p>
+          <a href="{{ url_for('subjects') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plus me-2"></i>Add Subject
+          </a>
+        </div>
+      </div>
     </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+
+  
+    
+  
+    <!-- Task List Section (show when filtering by subject or when there are tasks) -->
+    {% if current_subject or tasks %}
+    <div class="mt-4">
+        {% if current_subject %}
+        <!-- Subject-specific expanded task view with assessment data -->
+        {% if tasks %}
+            <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+                <h2 class="mb-0">{{ current_subject.name }}</h2>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-primary btn-sm me-2" data-href="{{ url_for('add_task') }}?subject_id={{ current_subject.id }}" onclick="window.location.href=this.dataset.href" title="Add Task" style="border-radius: var(--border-radius-md); font-weight: 600;">
+                        <i class="fas fa-plus me-1"></i> Add Task
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Assignment Performance Graph Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-lg-8">
+                    <!-- Tasks will go here -->
+                    <div class="row g-4 mx-0">
+                        {% for task in tasks %}
+                        <div class="col-12 px-2">
+                            <div class="card border-0 shadow-sm h-100 expanded-task-card">
+                                <div class="card-body p-4">
+                                    <div class="row">
+                                        <!-- Task details (full width now) -->
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div class="d-flex align-items-center flex-grow-1">
+                                                    <div class="task-toggle me-3">
+                                                        <input type="checkbox" 
+                                                               class="form-check-input" 
+                                                               id="task-{{ task.id }}" 
+                                                               {% if task.status == 'completed' %}checked{% endif %}
+                                                               data-task-id="{{ task.id }}" onchange="toggleTaskStatus(this)"
+                                                               style="width: 24px; height: 24px; cursor: pointer; border-radius: 50%;">
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h4 class="card-title fw-bold mb-2 {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">
+                                                            {{ task.title|truncate_title }}
+                                                        </h4>
+                                                        {% if task.description %}
+                                                        <p class="text-muted mb-3">{{ task.description }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="task-actions">
+                                                    <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-outline-primary btn-sm me-2">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Task metadata -->
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">Due Date</small>
+                                                    {% if task.due_date %}
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="far fa-calendar text-primary me-2"></i>
+                                                        <span class="fw-semibold">{{ task.due_date|format_datetime }}</span>
+                                                    </div>
+                                                    {% else %}
+                                                    <span class="text-muted">No due date</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">Priority</small>
+                                                    <span class="badge bg-{{ 'danger' if task.priority == 'high' else 'warning' if task.priority == 'medium' else 'info' }} rounded-pill px-3 py-2">
+                                                        <i class="fas fa-flag me-1"></i>{{ task.priority|title }}
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">Status</small>
+                                                    <span class="badge bg-{{ 'success' if task.status == 'completed' else 'warning' if task.status == 'in_progress' else 'secondary' }} rounded-pill px-3 py-2">
+                                                        <i class="fas fa-{{ 'check' if task.status == 'completed' else 'clock' if task.status == 'in_progress' else 'circle' }} me-1"></i>{{ task.status|replace('_', ' ')|title }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if task.category_name %}
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">Category</small>
+                                                <span class="badge rounded-pill px-3 py-2 category-badge" data-category-color="{{ task.category_color }}">
+                                                    <i class="fas fa-tag me-1"></i>{{ task.category_name }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-chart-line me-2 text-primary"></i>Assignment Performance
+                            </h5>
+                            
+                            {% if assessment_results %}
+                            <!-- Recent assignment scores -->
+                            <div class="mb-4">
+                                <h6 class="fw-semibold mb-3">Recent Assignment Results</h6>
+                                <div class="assessment-scores">
+                                    {% for result in assessment_results[-5:] %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                        <div>
+                                            <small class="text-muted d-block">{{ result.task_name[:20] }}{% if result.task_name|length > 20 %}...{% endif %}</small>
+                                            <span class="fw-bold">{{ result.raw_mark }}/{{ result.max_mark }}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-{{ 'success' if result.percentage >= 80 else 'warning' if result.percentage >= 60 else 'danger' }} rounded-pill">
+                                                {{ result.percentage }}%
+                                            </span>
+                                            <small class="text-muted d-block">{{ result.weight }}%</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Performance graph -->
+                            <div class="chart-container">
+                                <h6 class="fw-semibold mb-3">Performance Trend</h6>
+                                <canvas id="assignmentPerformanceChart" width="300" height="200"></canvas>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-chart-line text-muted mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-0">No assignment assessment data</p>
+                                <small class="text-muted">Complete assignments to track your performance</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clipboard-list text-muted mb-3" style="font-size: 3rem;"></i>
+                <h2 class="text-muted mb-3">{{ current_subject.name }}</h2>
+                <h5 class="text-muted mb-3">No tasks yet for {{ current_subject.name }}</h5>
+                <p class="text-muted mb-4">Start by adding your first task for this subject</p>
+                <a href="{{ url_for('add_task') }}?subject_id={{ current_subject.id }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add Your First Task
+                </a>
+            </div>
+        {% endif %}
+        {% else %}
+        <!-- All tasks list -->
+        <h4 class="mb-3 px-3">All Tasks</h4>
+        
+        <!-- Tasks List (full width) -->
+        <div id="task-container" class="row g-3 g-md-4 mx-0">
+            {% if tasks %}
+                {% set status_class = {
+                    'not_started': 'secondary',
+                    'in_progress': 'warning', 
+                    'completed': 'success'
+                } %}
+                {% set priority_class = {
+                    'high': 'danger',
+                    'medium': 'warning',
+                    'low': 'info'
+                } %}
+                
+                {% for task in tasks %}
+                    <div class="col-12 col-md-6 col-lg-4 px-2 task-item fade-in-up" 
+                         data-task-id="{{ task.id }}" 
+                         data-status="{{ task.status }}" 
+                         data-priority="{{ task.priority }}" 
+                         data-category="{{ task.category_id or 'all' }}"
+                         data-due-date="{{ task.due_date or '' }}"
+                         data-animation-delay="{{ loop.index }}">
+                        <div class="card border-0 h-100 position-relative overflow-hidden">
+                            <!-- Status indicator bar -->
+                            <div class="position-absolute top-0 start-0 w-100 status-bar" data-status="{{ status_class[task.status] }}" style="height: 4px;"></div>
+                            
+                            <div class="card-body d-flex flex-column pt-4">
+                                <!-- Header with title and actions -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <div class="task-toggle me-2">
+                                            <input type="checkbox" 
+                                                   class="form-check-input" 
+                                                   id="task-{{ task.id }}" 
+                                                   {% if task.status == 'completed' %}checked{% endif %}
+                                                   data-task-id="{{ task.id }}" onchange="toggleTaskStatus(this)"
+                                                   style="width: 20px; height: 20px; cursor: pointer; border-radius: 50%;">
+                                        </div>
+                                        <div class="flex-grow-1 d-flex align-items-center">
+                                            <h6 class="card-title fw-bold mb-0 {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %} me-2">
+                                                {{ task.title|truncate_title }}
+                                            </h6>
+                                            <div class="task-actions d-flex gap-1">
+                                                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                                    <i class="fas fa-edit fs-6"></i>
+                                                </a>
+                                                <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border: none; background: transparent;">
+                                                        <i class="fas fa-trash fs-6"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Description -->
+                                {% if task.description %}
+                                <p class="card-text text-muted mb-3">{{ task.description[:60] }}{% if task.description|length > 60 %}...{% endif %}</p>
+                                {% endif %}
+                                
+                                <!-- Spacer -->
+                                <div class="flex-grow-1"></div>
+                                
+                                <!-- Footer with badges -->
+                                <div class="border-top pt-3">
+                                    {% if task.due_date %}
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="far fa-calendar text-muted me-2"></i>
+                                        <span class="text-muted small">{{ task.due_date|format_datetime }}</span>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span class="badge bg-{{ status_class[task.status] }} rounded-pill px-2 py-1">
+                                            {{ task.status|replace('_', ' ')|title }}
+                                        </span>
+                                        <span class="badge bg-{{ priority_class[task.priority] }} rounded-pill px-2 py-1">
+                                            {{ task.priority|title }}
+                                        </span>
+                                        {% if task.category_name %}
+                                        <span class="badge rounded-pill px-2 py-1 category-badge" data-category-color="{{ task.category_color }}">
+                                            {{ task.category_name }}
+                                        </span>
+                                        {% endif %}
+                                        {% if task.subject_name %}
+                                        <span class="badge bg-primary rounded-pill px-2 py-1">
+                                            {{ task.subject_name }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- No tasks message (only show if not filtering by subject) -->
+        {% if not tasks and not current_subject %}
+            <div class="col-12">
+                <div class="text-center py-5" id="no-tasks-msg">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                        <i class="fas fa-clipboard-list text-muted fs-2"></i>
+                    </div>
+                    <h5 class="text-muted mb-3">No tasks found</h5>
+                    <p class="text-muted mb-4">Start by creating your first task to get organized!</p>
+                    <a href="{{ url_for('add_task') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Your First Task
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Hidden tasks info -->
     <div id="hidden-tasks-info" class="alert alert-info mt-3" style="display: none;">
@@ -1626,7 +2035,123 @@
         card.classList.add('active-filter');
         console.log('Card active state updated');
       }
-
-          </script>
-  {% endblock %}
+      
+      // Handle dynamic styling for progress bars
+      document.querySelectorAll('.progress-bar[data-progress]').forEach(bar => {
+        const progress = bar.dataset.progress;
+        if (progress) {
+          bar.style.width = progress + '%';
+        }
+      });
+      
+      // Handle dynamic styling for category badges
+      document.querySelectorAll('.category-badge[data-category-color]').forEach(badge => {
+        const color = badge.dataset.categoryColor;
+        if (color) {
+          badge.style.backgroundColor = color;
+          badge.style.color = 'white';
+        }
+      });
+      
+      // Create assignment performance chart for subject-specific views
+      {% if current_subject and assessment_results %}
+      (function() {
+        const assessmentData = {{ assessment_results|tojson|safe }};
+        
+        const ctx = document.getElementById('assignmentPerformanceChart');
+        if (!ctx) return;
+        
+        // Prepare chart data
+        const labels = assessmentData.map(result => `Test ${result.test_number}`);
+        const percentages = assessmentData.map(result => result.percentage);
+        
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Assignment Score (%)',
+              data: percentages,
+              borderColor: 'rgb(26, 58, 92)',
+              backgroundColor: 'rgba(26, 58, 92, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: 'rgb(26, 58, 92)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8,
+                titleFont: {
+                  size: 14,
+                  weight: 'bold'
+                },
+                bodyFont: {
+                  size: 13
+                },
+                callbacks: {
+                  label: function(context) {
+                    const index = context.dataIndex;
+                    const result = assessmentData[index];
+                    return [
+                      `Score: ${result.percentage}%`,
+                      `Mark: ${result.raw_mark}/${result.max_mark}`,
+                      `Weight: ${result.weight}%`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: {
+                    size: 11
+                  },
+                  color: '#666'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                  font: {
+                    size: 11
+                  },
+                  color: '#666',
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            }
+          }
+        });
+      })();
+      {% endif %}
+  </script>
+{% endblock %}
 {% endblock %}

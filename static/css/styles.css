@@ -7,9 +7,9 @@
 
 /* ------- MAIN COLORS ------- */
 :root {
-    --primary: #1a3a5c;                /* Deep navy - Academic theme */
+    --primary: #1a3a5c;                /* Deep navy */
     --primary-light: #2c5282;          /* Medium navy */
-    --accent: #c8972b;                 /* Gold/amber - Academic feel */
+    --accent: #c8972b;                 /* Gold/amber — academic feel */
     --success: #276749;                /* Dark green */
     --danger: #9b2335;                 /* Deep red */
     --warning: #d69e2e;                /* Dark amber */
@@ -23,6 +23,11 @@
     --text-primary: #1a202c;           /* Primary text */
     --text-secondary: #4a5568;         /* Secondary text */
     --text-muted: #718096;             /* Muted text */
+    
+    /* Card colour coding by type */
+    --subject-border: var(--primary);  /* Navy left border for subjects */
+    --extracurricular-border: var(--accent);  /* Gold left border for extracurriculars */
+    --work-personal-border: #4a5568;   /* Slate grey left border for work/personal */
 }
 
 /* ------- GENERAL STYLES ------- */
@@ -35,26 +40,50 @@ body {
 
 /* Card styles */
 .card {
-    border: none;
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1.5rem;
+    transition: box-shadow 0.3s ease;
+    background: var(--card-bg);
+}
+
+.card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    transform: none; /* Remove translateY animation */
+}
+
+/* Subject cards */
+.card-subject {
+    border-left: 4px solid var(--subject-border);
+}
+
+/* Extracurricular cards */
+.card-extracurricular {
+    border-left: 4px solid var(--extracurricular-border);
+}
+
+/* Work/Personal cards */
+.card-work-personal {
+    border-left: 4px solid var(--work-personal-border);
 }
 
 .card-header {
-    background-color: var(--light);
-    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border);
     font-weight: 600;
 }
 
 /* Task item styles */
 .task-item {
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease;
     border-left: 4px solid transparent;
 }
 
 .task-item:hover {
     background-color: rgba(0, 0, 0, 0.02);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    transform: none; /* Remove translateY animation */
 }
 
 .task-item.completed {

@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             /* Academic Colour Palette */
@@ -127,8 +128,8 @@
         }
 
         .task-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-xl);
+            box-shadow: var(--shadow-md);
+            transform: none; /* Remove translateY animation */
         }
 
         .priority-high { 
@@ -172,6 +173,7 @@
             background: var(--primary-light);
             border-color: var(--primary-light);
             color: white;
+            transform: none; /* Remove translateY animation */
         }
 
         .btn-success {
@@ -184,6 +186,7 @@
             background: #2f855a;
             border-color: #2f855a;
             color: white;
+            transform: none; /* Remove translateY animation */
         }
 
         .btn-warning {
@@ -196,6 +199,7 @@
             background: #b7791f;
             border-color: #b7791f;
             color: white;
+            transform: none; /* Remove translateY animation */
         }
 
         .btn-danger {
@@ -208,6 +212,7 @@
             background: #742a2a;
             border-color: #742a2a;
             color: white;
+            transform: none; /* Remove translateY animation */
         }
 
         .btn-info {
@@ -220,6 +225,7 @@
             background: #2c5282;
             border-color: #2c5282;
             color: white;
+            transform: none; /* Remove translateY animation */
         }
 
         .btn-outline-primary {
@@ -733,6 +739,196 @@
             border-color: var(--primary) !important;
             outline: none !important;
         }
+
+        /* Priority Widget Styles */
+        .priority-widget-collapsed {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .priority-widget-expanded {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .priority-toggle-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .priority-toggle-btn:hover {
+            background: var(--primary-light);
+            transform: scale(1.05);
+        }
+
+        .priority-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid white;
+        }
+
+        .priority-panel {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 320px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-xl);
+            display: none;
+            max-height: 400px;
+            overflow: hidden;
+        }
+
+        .priority-widget-expanded .priority-panel {
+            display: block;
+        }
+
+        .priority-header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .priority-header h6 {
+            margin: 0;
+            font-weight: 600;
+            flex-grow: 1;
+        }
+
+        .priority-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--border-radius-sm);
+            transition: background 0.2s ease;
+        }
+
+        .priority-close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .priority-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .priority-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background 0.2s ease;
+        }
+
+        .priority-item:hover {
+            background: var(--light);
+        }
+
+        .priority-item:last-child {
+            border-bottom: none;
+        }
+
+        .priority-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .priority-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .priority-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .priority-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Mobile responsive for priority widget */
+        @media (max-width: 768px) {
+            .priority-widget-collapsed,
+            .priority-widget-expanded {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .priority-toggle-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .priority-panel {
+                width: 280px;
+                right: -10px;
+            }
+
+            .priority-count {
+                width: 20px;
+                height: 20px;
+                font-size: 0.6875rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .priority-panel {
+                width: calc(100vw - 2rem);
+                right: -1rem;
+                left: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -750,10 +946,13 @@
                         <a class="nav-link" href="{{ url_for('index') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Subjects</a>
+                        <a class="nav-link" href="{{ url_for('subjects') }}">Subjects</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">ATAR Predictor</a>
+                        <a class="nav-link" href="{{ url_for('atar') }}">ATAR Predictor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}?view=all">All Tasks</a>
                     </li>
                 </ul>
                 <div class="navbar-nav ms-auto">
@@ -802,6 +1001,25 @@
         </div>
     </footer>
 
+    <!-- Priority Widget -->
+    <div id="priority-widget" class="priority-widget-collapsed">
+        <button id="priority-toggle" class="priority-toggle-btn">
+            <i class="fas fa-clipboard"></i>
+            <span id="priority-count" class="priority-count">0</span>
+        </button>
+        <div id="priority-panel" class="priority-panel">
+            <div class="priority-header">
+                <h6>Priority Tasks</h6>
+                <button id="priority-close" class="priority-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="priority-list" class="priority-list">
+                <!-- Priority tasks will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-hide flash messages after 3 seconds (but not hidden tasks notification)
@@ -820,7 +1038,51 @@
                 }, 3000); // 3 seconds
             });
             
+            // Priority Widget functionality
+            const priorityToggle = document.getElementById('priority-toggle');
+            const priorityPanel = document.getElementById('priority-panel');
+            const priorityClose = document.getElementById('priority-close');
+            const priorityWidget = document.getElementById('priority-widget');
+            
+            priorityToggle.addEventListener('click', function() {
+                priorityWidget.classList.toggle('priority-widget-expanded');
+            });
+            
+            priorityClose.addEventListener('click', function() {
+                priorityWidget.classList.remove('priority-widget-expanded');
+            });
+            
+            // Load priority tasks (this would be populated from the backend)
+            loadPriorityTasks();
         });
+        
+        function loadPriorityTasks() {
+            // This would typically be populated from the backend
+            // For now, showing placeholder functionality
+            const priorityList = document.getElementById('priority-list');
+            const priorityCount = document.getElementById('priority-count');
+            
+            // Placeholder data - replace with actual backend data
+            const urgentTasks = [
+                { title: 'Sample urgent task', subject: 'Mathematics', due: 'Tomorrow' }
+            ];
+            
+            priorityCount.textContent = urgentTasks.length;
+            
+            if (urgentTasks.length === 0) {
+                priorityList.innerHTML = '<p class="text-muted small mb-0">No urgent tasks</p>';
+            } else {
+                priorityList.innerHTML = urgentTasks.map((task, index) => `
+                    <div class="priority-item">
+                        <div class="priority-number">${index + 1}</div>
+                        <div class="priority-content">
+                            <div class="priority-title">${task.title}</div>
+                            <div class="priority-meta">${task.subject} · ${task.due}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
     </script>
 </body>
 </html>

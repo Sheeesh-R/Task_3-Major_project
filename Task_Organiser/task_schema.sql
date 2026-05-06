@@ -34,8 +34,10 @@ CREATE TABLE tasks (
 -- Create subjects table
 CREATE TABLE subjects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     user_id INTEGER NOT NULL,
+    units INTEGER NOT NULL DEFAULT 2,
+    target_mark INTEGER,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 

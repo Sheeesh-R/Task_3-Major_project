@@ -9,7 +9,8 @@ Transform the existing Task Manager into an HSC Study Planner with ATAR predicti
 ## 1. UI Overhaul — Professional & Formal Design
 
 ### Design Direction
-Replace the current purple gradient aesthetic with a clean, academic look. Think government portal meets university dashboard — high contrast, structured, minimal decoration.
+Replace the current purple gradient aesthetic with a clean, academic look.
+High contrast, structured, minimal decoration — think university portal.
 
 ### Colour Palette
 ```css
@@ -26,6 +27,120 @@ Replace the current purple gradient aesthetic with a clean, academic look. Think
     --border: #cbd5e0;
 }
 ```
+
+### Card Colour Coding by Type
+- Subject cards — navy left border (--primary)
+- Extracurricular card — gold left border (--accent)
+- Work / Personal cards — slate grey left border (#4a5568)
+
+---
+
+### Changes to `base.html`
+- Replace gradient navbar with solid --primary navy bar with thin gold (--accent) bottom border
+- Switch font to Inter only — remove Space Grotesk and all decorative fonts
+- Replace all gradient buttons with flat, bordered buttons
+- Remove card hover translateY animations — keep subtle box-shadow transition only
+- Add persistent priority widget (see Section 1.4) inside base.html so it appears on every page
+- Footer: dark navy background, simple copyright line only
+
+---
+
+### Changes to `index.html` — Card Dashboard Layout
+
+The dashboard replaces the current task list with a card grid.
+Each card represents one subject, one extracurricular group, one work label, or one personal label.
+
+**Above the card grid:**
+```
+[ + Add Subject ]   [ All Tasks ]
+```
+- "All Tasks" opens a full unfiltered task list across every subject and label, sorted by due date
+
+**Card grid layout (responsive):**
+- Desktop: 3 columns
+- Tablet: 2 columns
+- Mobile: 1 column
+
+**Each subject card contains:**
+```
+┌─────────────────────────────────┐
+│  Chemistry                 2u   │  ← navy left border, subject name + units
+│─────────────────────────────────│
+│  ████████░░░░  4 / 7 tasks      │  ← progress bar (completed / total)
+│  Due: 12 Jun                    │  ← nearest upcoming due date
+│                                 │
+│  ⚠  Titration Lab Report        │  ← highest priority task title (truncated)
+│                                 │
+│                  [ View All → ] │  ← links to /?subject_id=3
+└─────────────────────────────────┘
+```
+
+**Empty state (no tasks linked to that subject):**
+```
+┌─────────────────────────────────┐
+│  Chemistry                 2u   │
+│─────────────────────────────────│
+│  No tasks yet                   │
+│                                 │
+│                   [ Add Task → ]│  ← links to /task/add?subject_id=3
+└─────────────────────────────────┘
+```
+- "Add Task" on empty cards pre-fills the subject dropdown via URL param ?subject_id=3
+
+**Extracurricular card:**
+```
+┌─────────────────────────────────┐
+│  Extracurriculars               │  ← gold left border
+│─────────────────────────────────│
+│  ██░░░░░░░░░░  1 / 5 tasks      │
+│  Basketball — Tues 6pm          │  ← next activity note
+│                                 │
+│  ○  Submit club registration    │  ← highest priority task
+│                                 │
+│                  [ View All → ] │
+└─────────────────────────────────┘
+```
+
+**Work / Personal cards:**
+- Same layout as subject cards but with slate grey left border
+- No units indicator
+- No ATAR scaling applied
+
+---
+
+### 1.4 Persistent Priority Widget
+
+Lives in base.html — visible on every page, fixed to the bottom-right corner.
+
+**Collapsed state:**
+- Small circular button with a clipboard icon
+- Red badge showing count of urgent tasks (due within 3 days OR high priority)
+
+**Expanded state (click to toggle):**
+```
+┌──────────────────────────────┐
+│  Priority Tasks          ✕   │
+│──────────────────────────────│
+│  1. Titration Lab Report     │  ← clickable, links to edit page
+│     Chemistry · Due tomorrow │
+│  2. Legal Essay Draft        │
+│     Legal Studies · Due 3d   │
+│  3. Software Task 3          │
+│     Software Eng · High      │
+│  4. English Essay            │
+│     English Adv · Due 5d     │
+│  5. Physics Prac Report      │
+│     Physics · Due 6d         │
+└──────────────────────────────┘
+```
+
+Shows top 5 tasks ranked by combined urgency score:
+```python
+score = priority_weight + (1 / max(days_until_due, 1))
+# High = 3, Medium = 2, Low = 1
+```
+
+---
 
 ### Changes to `base.html`
 - Replace gradient navbar with a solid `--primary` navy bar
@@ -51,8 +166,11 @@ Replace the current purple gradient aesthetic with a clean, academic look. Think
 - Centre card on page with a navy header strip (not gradient)
 - Add the app name/logo above the card
 - Remove the circular icon decoration
-
----
+### Navbar / Navigation Structure
+```
+[ HSC Planner ]   Dashboard   Subjects   ATAR Predictor   Extracurriculars   |   Welcome, [user]   Logout
+```
+- Mobile: collapses into hamburger as before
 
 ## 2. Database Changes
 

@@ -23,7 +23,9 @@
               <input type="text" class="form-control form-control-lg" id="title" name="title" required 
                      value="{{ request.form.get('title', '') }}" 
                      placeholder="Enter task title"
+                     maxlength="50"
                      style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
+              <small class="text-muted mt-1 d-block">Maximum 50 characters</small>
             </div>
             
             <!-- Description field -->
@@ -34,7 +36,9 @@
               <textarea class="form-control" id="description" name="description" 
                         rows="4" 
                         placeholder="Add task description (optional)"
+                        maxlength="250"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease; resize: vertical;">{{ request.form.get('description', '') }}</textarea>
+              <small class="text-muted mt-1 d-block">Maximum 250 characters</small>
             </div>
             
             <!-- Date and Priority row -->
@@ -76,17 +80,18 @@
               </div>
               
               <div class="col-md-6 col-sm-12">
-                <label for="category_id" class="form-label fw-semibold">
-                  <i class="fas fa-tag me-2 text-primary"></i>Category
+                <label for="subject_id" class="form-label fw-semibold">
+                  <i class="fas fa-book me-2 text-primary"></i>Subject
                 </label>
-                <select class="form-select" id="category_id" name="category_id"
+                <select class="form-select" id="subject_id" name="subject_id"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="">📌 No Category</option>
-                  {% for category in categories %}
-                    <option value="{{ category.id }}" 
-                            {% if request.form.get('category_id')|string == category.id|string %}selected{% endif %}
-                            data-color="{{ category.color }}">
-                      {{ category.name }}
+                  <option value="">� No Subject</option>
+                  {% for subject in subjects %}
+                    <option value="{{ subject.id }}" 
+                            {% if request.form.get('subject_id')|string == subject.id|string %}selected{% endif %}>
+                      {{ subject.name }}
+                      {% if subject.units %}({{ subject.units }} units){% endif %}
+                      {% if subject.target_mark %}[Target: {{ subject.target_mark }}]{% endif %}
                     </option>
                   {% endfor %}
                 </select>
@@ -96,8 +101,7 @@
             <!-- Action buttons -->
             <div class="d-flex flex-column flex-sm-row justify-content-end gap-3 mt-5 pt-4 border-top">
               <a href="{{ url_for('index') }}" 
-                 class="btn btn-lg px-4 py-2 d-flex align-items-center justify-content-center"
-                 style="border-radius: 12px; border: 2px solid #6c757d; color: #6c757d; background: transparent; transition: all 0.3s ease;">
+                 class="btn btn-lg btn-outline-secondary px-4 py-2 d-flex align-items-center justify-content-center">
                 <i class="fas fa-times me-2"></i> Cancel
               </a>
               <button type="submit" 
@@ -114,21 +118,21 @@
   <style>
     /* Form field hover and focus effects */
     .form-control:hover, .form-select:hover {
-      border-color: #667eea !important;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+      border-color: var(--primary) !important;
+      transform: none; /* Remove translateY animation */
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
     
     .form-control:focus, .form-select:focus {
-      border-color: #667eea !important;
-      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-      transform: translateY(-1px);
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 0.2rem rgba(26, 58, 92, 0.25);
+      transform: none; /* Remove translateY animation */
     }
     
     /* Button hover effects */
     .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transform: none; /* Remove translateY animation */
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
     }
     
     /* Cancel button hover */
@@ -138,12 +142,7 @@
     }
     
     
-    /* Category select color styling */
-    #category_id {
-      color: var(--category-color, #6c757d);
-      border-color: var(--category-color, #e9ecef);
-    }
-  </style>
+      </style>
 {% endblock %}
 
 {% block scripts %}
@@ -154,25 +153,6 @@
     const dueDateInput = document.getElementById('due_date');
     if (dueDateInput) {
       dueDateInput.min = today;
-    }
-
-    // Handle category color styling
-    const categorySelect = document.getElementById('category_id');
-    if (categorySelect) {
-      // Update color when selection changes
-      const updateCategoryColor = () => {
-        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-        const color = selectedOption.dataset.color || '#6c757d';
-        categorySelect.style.setProperty('--category-color', color);
-        categorySelect.style.color = color;
-        categorySelect.style.borderColor = color;
-      };
-      
-      // Initial update
-      updateCategoryColor();
-      
-      // Update on change
-      categorySelect.addEventListener('change', updateCategoryColor);
     }
   });
 </script>
