@@ -55,6 +55,17 @@ CREATE TABLE assessment_results (
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
+-- Create atar_predictions table
+CREATE TABLE atar_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    atar_score REAL NOT NULL,            -- Calculated ATAR score
+    aggregate_score REAL NOT NULL,       -- ATAR aggregate score
+    prediction_date TEXT NOT NULL,       -- When prediction was made
+    notes TEXT,                          -- Optional notes about the prediction
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 -- Insert default categories
 INSERT INTO categories (name, color) VALUES ('Work', '#007bff');
 INSERT INTO categories (name, color) VALUES ('Study', '#28a745');

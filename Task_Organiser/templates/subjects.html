@@ -19,8 +19,8 @@
                 <div class="card card-subject h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title fw-bold mb-1">{{ subject.name }}</h5>
+                            <div class="d-flex align-items-center">
+                                <h5 class="card-title fw-bold mb-0 me-2">{{ subject.name }}</h5>
                                 <span class="badge bg-primary">{{ subject.units }}u</span>
                             </div>
                             <div class="dropdown">
@@ -38,9 +38,13 @@
                                     <li><a class="dropdown-item" href="#">
                                         <i class="fas fa-edit me-2"></i>Edit
                                     </a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">
-                                        <i class="fas fa-trash me-2"></i>Delete
-                                    </a></li>
+                                    <li>
+                                        <form method="POST" action="{{ url_for('delete_subject', subject_id=subject.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ subject.name }}? This action cannot be undone.')">
+                                            <button type="submit" class="dropdown-item text-danger" style="border: none; background: none; width: 100%; text-align: left; padding: 0.25rem 1rem; cursor: pointer;">
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </button>
+                                        </form>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -123,26 +127,71 @@
                         <label for="subject_name" class="form-label fw-semibold">Subject Name</label>
                         <select class="form-select" id="subject_name" name="subject_name" required>
                             <option value="">Select a subject...</option>
-                            <option value="Mathematics Advanced">Mathematics Advanced</option>
-                            <option value="English Advanced">English Advanced</option>
-                            <option value="Chemistry">Chemistry</option>
-                            <option value="Physics">Physics</option>
-                            <option value="Biology">Biology</option>
-                            <option value="Legal Studies">Legal Studies</option>
-                            <option value="Economics">Economics</option>
-                            <option value="Business Studies">Business Studies</option>
-                            <option value="Software Engineering">Software Engineering</option>
-                            <option value="Design and Technology">Design and Technology</option>
+                            
+                            <optgroup label="English">
+                                <option value="English Advanced|2">English Advanced (2 units)</option>
+                                <option value="English Standard|2">English Standard (2 units)</option>
+                                <option value="English EAL/D|2">English EAL/D (2 units)</option>
+                                <option value="English Extension 1|1">English Extension 1 (1 unit)</option>
+                                <option value="English Extension 2|1">English Extension 2 (1 unit)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Mathematics">
+                                <option value="Mathematics Advanced|2">Mathematics Advanced (2 units)</option>
+                                <option value="Mathematics Standard 2|2">Mathematics Standard 2 (2 units)</option>
+                                <option value="Mathematics Standard 1|2">Mathematics Standard 1 (2 units)</option>
+                                <option value="Mathematics Extension 1|1">Mathematics Extension 1 (1 unit)</option>
+                                <option value="Mathematics Extension 2|1">Mathematics Extension 2 (1 unit)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Sciences">
+                                <option value="Chemistry|2">Chemistry (2 units)</option>
+                                <option value="Physics|2">Physics (2 units)</option>
+                                <option value="Biology|2">Biology (2 units)</option>
+                                <option value="Earth and Environmental Science|2">Earth and Environmental Science (2 units)</option>
+                                <option value="Investigating Science|2">Investigating Science (2 units)</option>
+                                <option value="Science Extension|1">Science Extension (1 unit)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Human Society and its Environment (HSIE)">
+                                <option value="Ancient History|2">Ancient History (2 units)</option>
+                                <option value="Modern History|2">Modern History (2 units)</option>
+                                <option value="History Extension|1">History Extension (1 unit)</option>
+                                <option value="Geography|2">Geography (2 units)</option>
+                                <option value="Legal Studies|2">Legal Studies (2 units)</option>
+                                <option value="Economics|2">Economics (2 units)</option>
+                                <option value="Business Studies|2">Business Studies (2 units)</option>
+                                <option value="Society and Culture|2">Society and Culture (2 units)</option>
+                                <option value="Studies of Religion I|1">Studies of Religion I (1 unit)</option>
+                                <option value="Studies of Religion II|2">Studies of Religion II (2 units)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Technologies">
+                                <option value="Software Engineering|2">Software Engineering (2 units)</option>
+                                <option value="Design and Technology|2">Design and Technology (2 units)</option>
+                                <option value="Information Processes and Technology|2">Information Processes and Technology (2 units)</option>
+                                <option value="Industrial Technology|2">Industrial Technology (2 units)</option>
+                                <option value="Food Technology|2">Food Technology (2 units)</option>
+                                <option value="Textiles and Design|2">Textiles and Design (2 units)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Personal Development, Health and Physical Education (PDHPE)">
+                                <option value="PDHPE|2">PDHPE (2 units)</option>
+                                <option value="Community and Family Studies|2">Community and Family Studies (2 units)</option>
+                                <option value="Exploring Early Childhood|1">Exploring Early Childhood (1 unit)</option>
+                            </optgroup>
+                            
+                            <optgroup label="Creative Arts">
+                                <option value="Visual Arts|2">Visual Arts (2 units)</option>
+                                <option value="Music 1|2">Music 1 (2 units)</option>
+                                <option value="Music 2|2">Music 2 (2 units)</option>
+                                <option value="Music Extension|1">Music Extension (1 unit)</option>
+                                <option value="Drama|2">Drama (2 units)</option>
+                                <option value="Photography, Video and Digital Imaging|1">Photography, Video and Digital Imaging (1 unit)</option>
+                            </optgroup>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="subject_units" class="form-label fw-semibold">Units</label>
-                        <select class="form-select" id="subject_units" name="subject_units" required>
-                            <option value="1">1 Unit</option>
-                            <option value="2" selected>2 Units</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
+                                        <div class="mb-3">
                         <label for="target_mark" class="form-label fw-semibold">Target Mark (%)</label>
                         <input type="number" class="form-control" id="target_mark" name="target_mark" 
                                min="0" max="100" placeholder="Enter your target mark">

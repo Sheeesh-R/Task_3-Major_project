@@ -811,6 +811,13 @@
                     <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
                       <i class="fas fa-times me-1"></i>Clear All
                     </button>
+                    {% if tasks|selectattr('status', '==', 'completed')|list|length > 0 %}
+                    <form method="POST" action="{{ url_for('delete_completed_tasks') }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete all completed tasks? This cannot be undone.')">
+                      <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-trash me-1"></i>Delete Completed
+                      </button>
+                    </form>
+                    {% endif %}
                   </div>
                 </div>
 
@@ -992,7 +999,7 @@
                 <div class="d-flex align-items-center">
                   <i class="fas fa-{{ 'exclamation-triangle' if subject.priority_task.priority == 'high' else 'flag' }} text-{{ 'warning' if subject.priority_task.priority == 'high' else 'primary' }} me-2"></i>
                   <div class="flex-grow-1">
-                    <strong class="text-{{ 'dark' if subject.priority_task.priority == 'high' else 'primary' }}">{{ subject.priority_task.title|truncate_title }}</strong>
+                    <strong class="text-{{ 'dark' if subject.priority_task.priority == 'high' else 'primary' }}">{{ subject.priority_task.title|truncate_title(20 if subject_id else 12) }}</strong>
                     {% if subject.priority_task.due_date %}
                     <br><small class="text-muted">Due: {{ subject.priority_task.due_date }}</small>
                     {% endif %}
@@ -1096,7 +1103,7 @@
                                                     </div>
                                                     <div class="flex-grow-1">
                                                         <h4 class="card-title fw-bold mb-2 {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">
-                                                            {{ task.title|truncate_title }}
+                                                            {{ task.title|truncate_title(30 if subject_id else 12) }}
                                                         </h4>
                                                         {% if task.description %}
                                                         <p class="text-muted mb-3">{{ task.description }}</p>
@@ -1258,7 +1265,7 @@
                                         </div>
                                         <div class="flex-grow-1 d-flex align-items-center">
                                             <h6 class="card-title fw-bold mb-0 {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %} me-2">
-                                                {{ task.title|truncate_title }}
+                                                {{ task.title|truncate_title(30 if subject_id else 12) }}
                                             </h6>
                                             <div class="task-actions d-flex gap-1">
                                                 <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">

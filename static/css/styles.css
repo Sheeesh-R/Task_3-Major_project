@@ -41,7 +41,7 @@ body {
 /* Card styles */
 .card {
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1.5rem;
     transition: box-shadow 0.3s ease;

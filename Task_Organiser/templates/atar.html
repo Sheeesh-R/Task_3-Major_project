@@ -20,14 +20,14 @@
                 <div class="card-body">
                     <form method="post" action="{{ url_for('atar') }}">
                         <div class="row g-3">
-                            {% for subject in subjects %}
+                            {% for subject in user_subjects %}
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="mark_{{ loop.index }}" 
-                                           name="mark_{{ loop.index }}" value="{{ subject.raw_mark }}" 
+                                    <input type="number" class="form-control" id="mark_{{ subject.id }}" 
+                                           name="mark_{{ subject.id }}" value="{{ subjects[loop.index0].raw_mark if subjects else '' }}" 
                                            min="0" max="100" step="0.1" placeholder="Enter mark">
-                                    <label for="mark_{{ loop.index }}" class="form-label">
-                                        {{ subject.name }}
+                                    <label for="mark_{{ subject.id }}" class="form-label">
+                                        {{ subject.name }} ({{ subject.units or 2 }} units)
                                     </label>
                                 </div>
                             </div>
@@ -113,68 +113,82 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Pass data from Flask to JavaScript
+window.chartData = {
+    subjects: {{ subjects|tojson|safe }}
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('marksChart').getContext('2d');
     
-    const subjects = {{ subjects|tojson }};
-    const labels = subjects.map(s => s.name);
-    const rawMarks = subjects.map(s => s.raw_mark);
-    const scaledMarks = subjects.map(s => s.scaled_mark);
+    const subjectsData = window.chartData.subjects || [];
+    const labels = subjectsData.map(s => s.name);
+    const rawMarks = subjectsData.map(s => s.raw_mark);
+    const scaledMarks = subjectsData.map(s => s.scaled_mark);
     
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Raw Mark',
-                    data: rawMarks,
-                    backgroundColor: 'rgba(26, 58, 92, 0.6)',
-                    borderColor: 'rgba(26, 58, 92, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Scaled Mark',
-                    data: scaledMarks,
-                    backgroundColor: 'rgba(200, 151, 43, 0.6)',
-                    borderColor: 'rgba(200, 151, 43, 1)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Mark (%)'
+    // Only create chart if we have data
+    if (labels.length > 0) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Raw Mark',
+                        data: rawMarks,
+                        backgroundColor: 'rgba(26, 58, 92, 0.6)',
+                        borderColor: 'rgba(26, 58, 92, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Scaled Mark',
+                        data: scaledMarks,
+                        backgroundColor: 'rgba(200, 151, 43, 0.6)',
+                        borderColor: 'rgba(200, 151, 43, 1)',
+                        borderWidth: 1
                     }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Subjects'
-                    }
-                }
+                ]
             },
-            plugins: {
-                legend: {
-                    position: 'top',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Mark (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Subjects'
+                        }
+                    }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + context.parsed.y + '%';
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
                         }
                     }
                 }
             }
+        });
+    } else {
+        // Hide chart section if no data
+        const chartSection = document.getElementById('marksChart').closest('.row');
+        if (chartSection) {
+            chartSection.style.display = 'none';
         }
-    });
+    }
 });
 </script>
 {% endblock %}

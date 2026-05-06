@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, current_app, session, g, jsonify
 from .db import get_db, init_app
+from .atar_scaling import calculate_atar, get_scaled_mark, get_subject_units
 import hashlib
 from functools import wraps
 
@@ -60,6 +61,23 @@ def create_app():
                 db.execute('ALTER TABLE subjects ADD COLUMN target_mark INTEGER')
                 print("Added 'target_mark' column to subjects table")
                 
+            # Check if atar_predictions table exists
+            cursor = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='atar_predictions'")
+            if cursor.fetchone() is None:
+                # Create atar_predictions table
+                db.execute('''
+                    CREATE TABLE atar_predictions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        atar_score REAL NOT NULL,
+                        aggregate_score REAL NOT NULL,
+                        prediction_date TEXT NOT NULL,
+                        notes TEXT,
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                    )
+                ''')
+                print("Created 'atar_predictions' table")
+                
             db.commit()
         except Exception as e:
             print(f"Migration error: {e}")
@@ -109,8 +127,8 @@ def create_app():
         return value.strftime(format)
 
     @app.template_filter('truncate_title')
-    def truncate_title(title):
-        """Truncate title to first 3 words or 12 characters, whichever comes first"""
+    def truncate_title(title, max_chars=12):
+        """Truncate title to first 3 words or max_chars characters, whichever comes first"""
         if not title:
             return title
         
@@ -118,14 +136,14 @@ def create_app():
         words = title.split()
         if len(words) > 3:
             truncated = ' '.join(words[:3])
-            # If 3 words are longer than 12 characters, truncate further
-            if len(truncated) > 12:
-                return truncated[:12] + '...'
+            # If 3 words are longer than max_chars characters, truncate further
+            if len(truncated) > max_chars:
+                return truncated[:max_chars] + '...'
             return truncated + '...'
         else:
-            # If 3 or fewer words, check if any word is longer than 12 characters
-            if len(title) > 12:
-                return title[:12] + '...'
+            # If 3 or fewer words, check if any word is longer than max_chars characters
+            if len(title) > max_chars:
+                return title[:max_chars] + '...'
             return title
 
     return app
@@ -423,6 +441,25 @@ def register_routes(app):
             flash(f'Error deleting task: {str(e)}', 'error')
         return redirect(url_for('index'))
         
+    @app.route('/delete_completed_tasks', methods=['POST'])
+    @login_required
+    def delete_completed_tasks():
+        db = get_db()
+        try:
+            # Count completed tasks before deletion
+            completed_count = db.execute('SELECT COUNT(*) FROM tasks WHERE user_id = ? AND status = ?', (g.user['id'], 'completed')).fetchone()[0]
+            
+            if completed_count > 0:
+                db.execute('DELETE FROM tasks WHERE user_id = ? AND status = ?', (g.user['id'], 'completed'))
+                db.commit()
+                flash(f'Successfully deleted {completed_count} completed task(s)!', 'success')
+            else:
+                flash('No completed tasks to delete.', 'info')
+        except Exception as e:
+            db.rollback()
+            flash(f'Error deleting completed tasks: {str(e)}', 'error')
+        return redirect(url_for('index'))
+        
     @app.route('/task/<int:task_id>/toggle', methods=['POST'])
     @login_required
     def toggle_task_status(task_id):
@@ -475,8 +512,12 @@ def register_routes(app):
                     subject_dict['target_mark'] = None
                 if 'estimated_mark' not in subject_dict:
                     subject_dict['estimated_mark'] = 0
-                if 'task_count' not in subject_dict:
-                    subject_dict['task_count'] = 0
+                
+                # Calculate actual task count for this subject
+                task_count = db.execute('SELECT COUNT(*) as count FROM tasks WHERE user_id = ? AND subject_id = ?', 
+                                    (g.user['id'], subject_dict['id'])).fetchone()
+                subject_dict['task_count'] = task_count['count'] if task_count else 0
+                
                 subjects_list.append(subject_dict)
             
             return render_template('subjects.html', subjects=subjects_list)
@@ -491,8 +532,13 @@ def register_routes(app):
         print("DEBUG: add_subject route reached")  # Debug print
         db = get_db()
         try:
-            subject_name = request.form.get('subject_name')
-            units = int(request.form.get('subject_units', 2))
+            subject_data = request.form.get('subject_name')
+            if subject_data and '|' in subject_data:
+                subject_name, units = subject_data.split('|')
+                units = int(units)
+            else:
+                subject_name = subject_data
+                units = 2  # Default to 2 units if not specified
             target_mark = request.form.get('target_mark')
             
             print(f"DEBUG: subject_name={subject_name}, units={units}, target_mark={target_mark}")  # Debug print
@@ -529,6 +575,37 @@ def register_routes(app):
         
         return redirect(url_for('subjects'))
 
+    # Delete subject route
+    @app.route('/subjects/<int:subject_id>/delete', methods=['POST'])
+    @login_required
+    def delete_subject(subject_id):
+        db = get_db()
+        try:
+            # Check if subject exists and belongs to current user
+            subject = db.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', (subject_id, g.user['id'])).fetchone()
+            
+            if subject is None:
+                flash('Subject not found', 'error')
+                return redirect(url_for('subjects'))
+            
+            # Check if there are any tasks associated with this subject
+            task_count = db.execute('SELECT COUNT(*) FROM tasks WHERE subject_id = ?', (subject_id,)).fetchone()[0]
+            
+            if task_count > 0:
+                flash(f'Cannot delete subject "{subject["name"]}" because it has {task_count} associated task(s). Please delete or reassign the tasks first.', 'error')
+                return redirect(url_for('subjects'))
+            
+            # Delete the subject
+            db.execute('DELETE FROM subjects WHERE id = ? AND user_id = ?', (subject_id, g.user['id']))
+            db.commit()
+            flash(f'Subject "{subject["name"]}" deleted successfully!', 'success')
+            
+        except Exception as e:
+            db.rollback()
+            flash(f'Error deleting subject: {str(e)}', 'error')
+        
+        return redirect(url_for('subjects'))
+
     # Test route to verify routing works
     @app.route('/test')
     def test():
@@ -538,22 +615,102 @@ def register_routes(app):
     @app.route('/atar', methods=['GET', 'POST'])
     @login_required
     def atar():
+        db = get_db()
+        
         if request.method == 'POST':
-            # Handle ATAR prediction (placeholder for now)
-            flash('ATAR prediction feature coming soon!', 'info')
-            return redirect(url_for('atar'))
+            try:
+                # Get user's subjects from database
+                user_subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+                
+                if not user_subjects:
+                    flash('Please add subjects first before calculating ATAR!', 'error')
+                    return redirect(url_for('subjects'))
+                
+                # Collect form data
+                subjects_data = []
+                for subject in user_subjects:
+                    mark_key = f"mark_{subject['id']}"
+                    raw_mark = request.form.get(mark_key, type=float)
+                    
+                    if raw_mark is not None and 0 <= raw_mark <= 100:
+                        subjects_data.append({
+                            'name': subject['name'],
+                            'raw_mark': raw_mark,
+                            'units': subject['units'] if 'units' in subject.keys() else 2
+                        })
+                
+                if not subjects_data:
+                    flash('Please enter at least one subject mark!', 'error')
+                    return redirect(url_for('atar'))
+                
+                # Calculate ATAR
+                atar_result = calculate_atar(subjects_data)
+                
+                # Save prediction to database
+                db.execute('''
+                    INSERT INTO atar_predictions (user_id, atar_score, aggregate_score, prediction_date, notes)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    g.user['id'],
+                    atar_result['atar'],
+                    atar_result['aggregate'],
+                    datetime.now().isoformat(),
+                    f"Based on {len(subjects_data)} subjects"
+                ))
+                
+                # Store the prediction in session for display
+                session['atar_result'] = atar_result
+                session['subjects_data'] = subjects_data
+                
+                db.commit()
+                flash('ATAR calculated and saved successfully!', 'success')
+                return redirect(url_for('atar'))
+                
+            except Exception as e:
+                db.rollback()
+                flash(f'Error calculating ATAR: {str(e)}', 'error')
+                return redirect(url_for('atar'))
         
-        # Sample data for demonstration
-        sample_subjects = [
-            {'name': 'Mathematics Advanced', 'raw_mark': 78, 'scaled_mark': 82, 'contribution': 16.4},
-            {'name': 'English Advanced', 'raw_mark': 82, 'scaled_mark': 82, 'contribution': 16.4},
-            {'name': 'Chemistry', 'raw_mark': 75, 'scaled_mark': 81, 'contribution': 16.2},
-            {'name': 'Physics', 'raw_mark': 73, 'scaled_mark': 78, 'contribution': 15.6},
-            {'name': 'Legal Studies', 'raw_mark': 80, 'scaled_mark': 76, 'contribution': 15.2}
-        ]
-        estimated_atar = 85.6  # Sample ATAR
+        # GET request - display ATAR calculator
+        user_subjects = db.execute('SELECT * FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
         
-        return render_template('atar.html', subjects=sample_subjects, estimated_atar=estimated_atar)
+        if not user_subjects:
+            flash('Please add subjects first before using the ATAR calculator!', 'info')
+            return redirect(url_for('subjects'))
+        
+        # Check if we have a stored result
+        atar_result = session.get('atar_result')
+        subjects_data = session.get('subjects_data', [])
+        
+        # Prepare subjects for template
+        template_subjects = []
+        if subjects_data:
+            # Use calculated data
+            for subject in subjects_data:
+                scaled_mark = get_scaled_mark(subject['name'], subject['raw_mark'])
+                contribution = next((s['contribution'] for s in atar_result['subjects'] if s['name'] == subject['name']), 0)
+                template_subjects.append({
+                    'name': subject['name'],
+                    'raw_mark': subject['raw_mark'],
+                    'scaled_mark': round(scaled_mark, 1),
+                    'contribution': round(contribution, 1)
+                })
+        else:
+            # Use default values for display
+            for subject in user_subjects:
+                template_subjects.append({
+                    'name': subject['name'],
+                    'raw_mark': 0,
+                    'scaled_mark': 0,
+                    'contribution': 0
+                })
+        
+        estimated_atar = atar_result['atar'] if atar_result else 0
+        
+        return render_template('atar.html', 
+                             subjects=template_subjects, 
+                             estimated_atar=estimated_atar,
+                             user_subjects=user_subjects)
 
     # About page
     @app.route('/about')
