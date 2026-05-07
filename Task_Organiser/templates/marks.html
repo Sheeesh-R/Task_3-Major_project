@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject.name }} - Assessment Marks{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('subjects') }}">Subjects</a></li>
+                    <li class="breadcrumb-item active">{{ subject.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{{ subject.name }} Assessment Marks</h2>
+                <div>
+                    {% if subject.units %}
+                        <span class="badge me-2" style="background: var(--primary);">{{ subject.units }} units</span>
+                    {% endif %}
+                    {% if subject.target_mark %}
+                        <span class="badge" style="background: var(--info);">Target: {{ subject.target_mark }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Mark Summary -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Current Estimated Mark</h5>
+                    <h2 style="color: var(--primary);">{{ current_mark }} / 100</h2>
+                    <p class="text-muted">Based on {{ total_weight }}% of total assessment weight</p>
+                    {% if total_weight > 100 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Total assessment weight exceeds 100%. Please review your assessments.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Add Assessment Result</h5>
+                    <form method="POST" action="{{ url_for('add_assessment_result', subject_id=subject.id) }}">
+                        <div class="mb-2">
+                            <label for="assessment_name" class="form-label">Assessment Name</label>
+                            <input type="text" class="form-control" id="assessment_name" name="assessment_name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="weight" class="form-label">Weight (%)</label>
+                                <input type="number" class="form-control" id="weight" name="weight" step="0.1" min="0" max="100" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="raw_mark" class="form-label">Your Mark</label>
+                                <input type="number" class="form-control" id="raw_mark" name="raw_mark" step="0.1" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="max_mark" class="form-label">Out Of</label>
+                                <input type="number" class="form-control" id="max_mark" name="max_mark" step="0.1" min="0.1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus"></i> Add Result
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Results Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Assessment Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if assessment_results %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Assessment Name</th>
+                                        <th>Weight (%)</th>
+                                        <th>Your Mark</th>
+                                        <th>Out Of</th>
+                                        <th>Percentage</th>
+                                        <th>Weighted Score</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in assessment_results %}
+                                    <tr>
+                                        <td>{{ result.assessment_name }}</td>
+                                        <td>{{ result.weight }}%</td>
+                                        <td>{{ result.raw_mark }}</td>
+                                        <td>{{ result.max_mark }}</td>
+                                        <td>
+                                            <span class="badge" {% if result.percentage >= 85 %}style="background: var(--success);"{% elif result.percentage >= 75 %}style="background: var(--info);"{% elif result.percentage >= 65 %}style="background: var(--warning);"{% else %}style="background: var(--danger);"{% endif %}>
+                                                {{ result.percentage }}%
+                                            </span>
+                                        </td>
+                                        <td>{{ result.weighted_score }}</td>
+                                        <td>{{ result.date_recorded[:10] if result.date_recorded else 'N/A' }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('delete_assessment_result', subject_id=subject.id, result_id=result.id) }}" 
+                                                  onsubmit="return confirm('Are you sure you want to delete this assessment result?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background: var(--primary); color: white;">
+                                        <th colspan="5">Total</th>
+                                        <th>{{ total_weight }}%</th>
+                                        <th colspan="2">{{ current_mark }} / 100</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <h5>No assessment results yet</h5>
+                            <p class="text-muted">Add your first assessment result to start tracking your progress.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('subjects') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Subjects
+                </a>
+                <a href="{{ url_for('index', subject_id=subject.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-tasks"></i> View Tasks
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

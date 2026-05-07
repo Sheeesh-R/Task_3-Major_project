@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}ATAR Calculation Methodology{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header" style="background: var(--primary); color: white;">
+                    <h2 class="mb-0 fw-bold"><i class="fas fa-calculator me-2"></i>How ATAR is Calculated</h2>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Overview -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3" style="color: var(--primary);">Overview</h4>
+                        <p class="lead">The Australian Tertiary Admission Rank (ATAR) is a percentile ranking system used by universities in Australia to select students for undergraduate courses. Our calculator estimates your ATAR using the same methodology as UAC (Universities Admissions Centre).</p>
+                    </div>
+
+                    <!-- Step 1: Raw HSC Marks -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3" style="color: var(--success);"><i class="fas fa-1 me-2"></i>Step 1: Raw HSC Marks</h4>
+                        <div class="card" style="border-color: var(--success);">
+                            <div class="card-body">
+                                <p><strong>Input:</strong> Your raw HSC marks for each subject (0-100 for standard subjects, 0-50 for extensions)</p>
+                                <p><strong>Validation:</strong> We check that marks are within valid ranges for each subject type</p>
+                                <p><strong>Example:</strong> English Advanced: 85/100, Mathematics Extension 1: 35/50</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Subject Scaling -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3" style="color: var(--info);"><i class="fas fa-2 me-2"></i>Step 2: Subject Scaling</h4>
+                        <div class="card" style="border-color: var(--info);">
+                            <div class="card-body">
+                                <p><strong>What is Scaling?</strong> Different subjects have different levels of difficulty. UAC applies scaling to make marks comparable across subjects.</p>
+                                <p><strong>Our Method:</strong> We use polynomial regression models trained on real UAC scaling data to convert raw marks to scaled marks.</p>
+                                
+                                <h6 class="mt-3">Scaling Examples:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Raw 85</th>
+                                                <th>Scaled</th>
+                                                <th>Scaling Factor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Mathematics Advanced</td>
+                                                <td>85/100</td>
+                                                <td>72.9%</td>
+                                                <td>0.86×</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Physics</td>
+                                                <td>85/100</td>
+                                                <td>79.1%</td>
+                                                <td>0.93×</td>
+                                            </tr>
+                                            <tr>
+                                                <td>English Standard</td>
+                                                <td>85/100</td>
+                                                <td>74.1%</td>
+                                                <td>0.87×</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Design & Technology</td>
+                                                <td>85/100</td>
+                                                <td>62.6%</td>
+                                                <td>0.74×</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Note:</strong> Scaling factors vary by mark level. Higher marks often scale differently than lower marks.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Aggregate Calculation -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3" style="color: var(--warning);"><i class="fas fa-3 me-2"></i>Step 3: Aggregate Score</h4>
+                        <div class="card" style="border-color: var(--warning);">
+                            <div class="card-body">
+                                <p><strong>What is Aggregate?</strong> Your ATAR aggregate is the sum of your best 10 units of scaled marks.</p>
+                                
+                                <h6 class="mt-3">Aggregate Rules:</h6>
+                                <ul>
+                                    <li><strong>Must include:</strong> At least 2 units of English (any level)</li>
+                                    <li><strong>Maximum:</strong> 10 units total (typically 5 subjects)</li>
+                                    <li><strong>Best units:</strong> We select your highest-scoring units</li>
+                                    <li><strong>Maximum possible:</strong> 500.0 (10 units × 50.0 each)</li>
+                                </ul>
+                                
+                                <h6 class="mt-3">Example Calculation:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Units</th>
+                                                <th>Scaled Mark</th>
+                                                <th>Contribution</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>English Advanced</td>
+                                                <td>2</td>
+                                                <td>72.9%</td>
+                                                <td>145.8</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Mathematics Advanced</td>
+                                                <td>2</td>
+                                                <td>72.9%</td>
+                                                <td>145.8</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Mathematics Extension 1</td>
+                                                <td>1</td>
+                                                <td>31.3%</td>
+                                                <td>31.3</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Physics</td>
+                                                <td>2</td>
+                                                <td>79.1%</td>
+                                                <td>158.2</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Software Engineering</td>
+                                                <td>2</td>
+                                                <td>74.1%</td>
+                                                <td>148.2</td>
+                                            </tr>
+                                            <tr style="background: var(--warning);">
+                                                <th colspan="3">Total Aggregate:</th>
+                                                <th>629.3</th>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: ATAR Conversion -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3" style="color: var(--danger);"><i class="fas fa-4 me-2"></i>Step 4: ATAR Conversion</h4>
+                        <div class="card" style="border-color: var(--danger);">
+                            <div class="card-body">
+                                <p><strong>Final Step:</strong> Convert your aggregate score to an ATAR using UAC's published conversion table.</p>
+                                
+                                <h6 class="mt-3">ATAR Conversion Examples:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Aggregate Score</th>
+                                                <th>ATAR Range</th>
+                                                <th>Percentile</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>500.0</td>
+                                                <td>99.95</td>
+                                                <td>Top 0.05%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>450.0</td>
+                                                <td>98.00</td>
+                                                <td>Top 2%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>400.0</td>
+                                                <td>94.00</td>
+                                                <td>Top 6%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>350.0</td>
+                                                <td>87.00</td>
+                                                <td>Top 13%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>300.0</td>
+                                                <td>77.00</td>
+                                                <td>Top 23%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>250.0</td>
+                                                <td>64.00</td>
+                                                <td>Top 36%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Important:</strong> ATAR conversion uses linear interpolation between these breakpoints for precise calculations.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Details -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold text-secondary mb-3"><i class="fas fa-cog me-2"></i>Technical Details</h4>
+                        <div class="card border-secondary">
+                            <div class="card-body">
+                                <h6>Polynomial Regression Models:</h6>
+                                <p>We use degree-4 polynomial regression trained on UAC scaling data for each subject. This provides more accurate scaling than simple linear interpolation.</p>
+                                
+                                <h6>Machine Learning Implementation:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Library</th>
+                                                <th>Usage</th>
+                                                <th>Purpose</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>scikit-learn</strong></td>
+                                                <td><code>PolynomialFeatures</code></td>
+                                                <td>Creates polynomial features for regression (degree 4)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>scikit-learn</strong></td>
+                                                <td><code>LinearRegression</code></td>
+                                                <td>Fits polynomial model to scaling data points</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>scikit-learn</strong></td>
+                                                <td><code>make_pipeline</code></td>
+                                                <td>Combines preprocessing and regression steps</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>numpy</strong></td>
+                                                <td><code>np.array()</code></td>
+                                                <td>Converts scaling data to numpy arrays</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>numpy</strong></td>
+                                                <td><code>np.clip()</code></td>
+                                                <td>Ensures scaled marks stay within 0-100 range</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>numpy</strong></td>
+                                                <td><code>np.reshape()</code></td>
+                                                <td>Prepares data for model input</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <h6>Code Implementation Example:</h6>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <pre><code># Create polynomial features (degree 4)
+poly_features = PolynomialFeatures(degree=4, include_bias=False)
+X_poly = poly_features.fit_transform(X.reshape(-1, 1))
+
+# Fit linear regression model
+model = LinearRegression()
+model.fit(X_poly, y)
+
+# Predict scaled mark for new HSC mark
+new_mark_poly = poly_features.transform([[hsc_mark]])
+predicted_scaled = model.predict(new_mark_poly)[0]
+
+# Ensure result is within valid range
+scaled_mark = np.clip(predicted_scaled, 0, 100)</code></pre>
+                                    </div>
+                                </div>
+                                
+                                <h6>Data Sources:</h6>
+                                <ul>
+                                    <li><strong>UAC Official Scaling Reports:</strong> Historical scaling data for all HSC subjects</li>
+                                    <li><strong>ATAR Conversion Tables:</strong> Published aggregate-to-ATAR conversion breakpoints</li>
+                                    <li><strong>Subject Difficulty Adjustments:</strong> Account for varying subject difficulty levels</li>
+                                </ul>
+                                
+                                <h6>Accuracy Considerations:</h6>
+                                <ul>
+                                    <li><strong>Historical Data:</strong> Based on past years' scaling patterns</li>
+                                    <li><strong>Methodology Changes:</strong> UAC may update calculation methods</li>
+                                    <li><strong>Cohort Variations:</strong> Your school's performance may affect scaling</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Limitations -->
+                    <div class="mb-4">
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Calculator Limitations</h5>
+                            <p class="mb-2">This calculator provides <strong>estimates only</strong> and should not be used for official purposes:</p>
+                            <ul class="mb-0">
+                                <li>Does not account for school-specific scaling adjustments</li>
+                                <li>Based on historical data, not current year methodology</li>
+                                <li>Cannot predict assessment performance variations</li>
+                                <li>Official ATAR calculations may use different factors</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Back to Calculator -->
+                    <div class="text-center">
+                        <a href="{{ url_for('atar') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to ATAR Calculator
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

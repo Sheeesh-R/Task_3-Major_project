@@ -54,13 +54,13 @@
               
               <div class="col-md-6 col-sm-12">
                 <label for="priority" class="form-label fw-semibold">
-                  <i class="fas fa-flag me-2 text-primary"></i>Priority
+                  Priority
                 </label>
                 <select class="form-select" id="priority" name="priority"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="high" {% if request.form.get('priority') == 'high' %}selected{% endif %}>🔴 High Priority</option>
-                  <option value="medium" {% if not request.form.get('priority') or request.form.get('priority') == 'medium' %}selected{% endif %}>🟡 Medium Priority</option>
-                  <option value="low" {% if request.form.get('priority') == 'low' %}selected{% endif %}>🟢 Low Priority</option>
+                  <option value="high" {% if request.form.get('priority') == 'high' %}selected{% endif %}>High Priority</option>
+                  <option value="medium" {% if not request.form.get('priority') or request.form.get('priority') == 'medium' %}selected{% endif %}>Medium Priority</option>
+                  <option value="low" {% if request.form.get('priority') == 'low' %}selected{% endif %}>Low Priority</option>
                 </select>
               </div>
             </div>
@@ -69,13 +69,13 @@
             <div class="row mb-4">
               <div class="col-md-6 col-sm-12 mb-3 mb-md-0">
                 <label for="status" class="form-label fw-semibold">
-                  <i class="fas fa-tasks me-2 text-primary"></i>Status
+                  Status
                 </label>
                 <select class="form-select" id="status" name="status"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="not_started" {% if not request.form.get('status') or request.form.get('status') == 'not_started' %}selected{% endif %}>📋 Not Started</option>
-                  <option value="in_progress" {% if request.form.get('status') == 'in_progress' %}selected{% endif %}>⚡ In Progress</option>
-                  <option value="completed" {% if request.form.get('status') == 'completed' %}selected{% endif %}>✅ Completed</option>
+                  <option value="not_started" {% if not request.form.get('status') or request.form.get('status') == 'not_started' %}selected{% endif %}>Not Started</option>
+                  <option value="in_progress" {% if request.form.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                  <option value="completed" {% if request.form.get('status') == 'completed' %}selected{% endif %}>Completed</option>
                 </select>
               </div>
               
@@ -85,7 +85,7 @@
                 </label>
                 <select class="form-select" id="subject_id" name="subject_id"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="">� No Subject</option>
+                  <option value="">No Subject</option>
                   {% for subject in subjects %}
                     <option value="{{ subject.id }}" 
                             {% if request.form.get('subject_id')|string == subject.id|string %}selected{% endif %}>

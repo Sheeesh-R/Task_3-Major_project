@@ -58,9 +58,9 @@
                 </label>
                 <select class="form-select" id="priority" name="priority"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="high" {% if task.priority == 'high' %}selected{% endif %}>🔴 High Priority</option>
-                  <option value="medium" {% if not task.priority or task.priority == 'medium' %}selected{% endif %}>🟡 Medium Priority</option>
-                  <option value="low" {% if task.priority == 'low' %}selected{% endif %}>🟢 Low Priority</option>
+                  <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High Priority</option>
+                  <option value="medium" {% if not task.priority or task.priority == 'medium' %}selected{% endif %}>Medium Priority</option>
+                  <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low Priority</option>
                 </select>
               </div>
             </div>
@@ -73,10 +73,10 @@
                 </label>
                 <select class="form-select" id="task_type" name="task_type"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="Classwork" {% if task.category_name == 'Classwork' %}selected{% endif %}>📚 Classwork</option>
-                  <option value="Homework" {% if task.category_name == 'Homework' %}selected{% endif %}>🏠 Homework</option>
-                  <option value="Assignments" {% if task.category_name == 'Assignments' %}selected{% endif %}>📋 Assignments</option>
-                  <option value="Other" {% if task.category_name not in ['Classwork', 'Homework', 'Assignments'] %}selected{% endif %}>📌 Other</option>
+                  <option value="Classwork" {% if task.category_name == 'Classwork' %}selected{% endif %}>Classwork</option>
+                  <option value="Homework" {% if task.category_name == 'Homework' %}selected{% endif %}>Homework</option>
+                  <option value="Assignments" {% if task.category_name == 'Assignments' %}selected{% endif %}>Assignments</option>
+                  <option value="Other" {% if task.category_name not in ['Classwork', 'Homework', 'Assignments'] %}selected{% endif %}>Other</option>
                 </select>
               </div>
               
@@ -86,7 +86,7 @@
                 </label>
                 <select class="form-select" id="subject_id" name="subject_id"
                         style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s ease;">
-                  <option value="">� No Subject</option>
+                  <option value="">No Subject</option>
                   {% for subject in subjects %}
                     <option value="{{ subject.id }}" 
                             {% if task.subject_id == subject.id %}selected{% endif %}>

@@ -10,7 +10,7 @@
                 <h1 class="fw-bold mb-3" style="color: var(--primary);">HSC Study Planner</h1>
                 <p class="text-secondary">Your academic journey starts here</p>
             </div>
-            <div class="card border-0 fade-in-up" style="border-left: 4px solid var(--success);">
+            <div class="card border-0 fade-in-up" style="border-left: 4px solid var(--primary);">
                 <div class="card-body p-4 p-md-5">
                     <div class="text-center mb-4 mb-md-5">
                         <h2 class="fw-bold mb-2 mb-md-3">Create Account</h2>
@@ -21,7 +21,7 @@
                         <div class="mb-3 mb-md-4">
                             <label for="username" class="form-label">Username</label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background: var(--success); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-user"></i>
                                 </span>
                                 <input type="text" class="form-control" id="username" name="username" required placeholder="Choose a username">
@@ -30,7 +30,7 @@
                         <div class="mb-3 mb-md-4">
                             <label for="email" class="form-label">Email Address</label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background: var(--success); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-envelope"></i>
                                 </span>
                                 <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
@@ -39,7 +39,7 @@
                         <div class="mb-3 mb-md-4">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background: var(--success); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-lock"></i>
                                 </span>
                                 <input type="password" class="form-control" id="password" name="password" required placeholder="Create a password">
@@ -48,21 +48,21 @@
                         <div class="mb-3 mb-md-4">
                             <label for="confirm_password" class="form-label">Confirm Password</label>
                             <div class="input-group">
-                                <span class="input-group-text" style="background: var(--success); border: none; color: white;">
+                                <span class="input-group-text" style="background: var(--primary); border: none; color: white;">
                                     <i class="fas fa-lock"></i>
                                 </span>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
                             </div>
                         </div>
                         <div class="d-grid mb-3 mb-md-4">
-                            <button type="submit" class="btn btn-lg btn-success">
+                            <button type="submit" class="btn btn-lg btn-primary">
                                 <i class="fas fa-user-plus me-2"></i>Create Account
                             </button>
                         </div>
                     </form>
                     
                     <div class="text-center">
-                        <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}" class="fw-bold" style="color: var(--success);">Sign in here</a></p>
+                        <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}" class="fw-bold" style="color: var(--primary);">Sign in here</a></p>
                     </div>
                 </div>
             </div>

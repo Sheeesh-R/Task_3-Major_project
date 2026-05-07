@@ -199,7 +199,6 @@ body {
 }
 
 .btn-action:hover {
-  transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -304,7 +303,6 @@ body {
 
 .btn-save:hover {
   background-color: #0b5ed7;
-  transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
 }
 
@@ -316,7 +314,6 @@ body {
 
 .btn-cancel:hover {
   background-color: #e9ecef;
-  transform: translateY(-1px);
 }
 
 .btn-delete {
@@ -327,7 +324,6 @@ body {
 
 .btn-delete:hover {
   background-color: #f8d7da;
-  transform: translateY(-1px);
 }
 
 /* Status badges */

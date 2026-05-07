@@ -24,10 +24,15 @@
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
                                     <input type="number" class="form-control" id="mark_{{ subject.id }}" 
-                                           name="mark_{{ subject.id }}" value="{{ subjects[loop.index0].raw_mark if subjects else '' }}" 
-                                           min="0" max="100" step="0.1" placeholder="Enter mark">
+                                           name="mark_{{ subject.id }}" value="{{ atar_result.subject_results[loop.index0].hsc_mark if atar_result else '' }}" 
+                                           min="0" max="{{ '50' if 'Extension' in subject.name and subject.name != 'Mathematics Extension 2' else '100' }}" step="0.1" placeholder="Enter mark">
                                     <label for="mark_{{ subject.id }}" class="form-label">
                                         {{ subject.name }} ({{ subject.units or 2 }} units)
+                                        {% if 'Extension' in subject.name and subject.name != 'Mathematics Extension 2' %}
+                                        <small class="text-muted">(out of 50)</small>
+                                        {% else %}
+                                        <small class="text-muted">(out of 100)</small>
+                                        {% endif %}
                                     </label>
                                 </div>
                             </div>
@@ -60,6 +65,7 @@
                     </div>
 
                     <!-- Subject Breakdown Table -->
+                    {% if atar_result %}
                     <div class="table-responsive mb-4">
                         <table class="table table-hover">
                             <thead class="table-light">
@@ -67,41 +73,58 @@
                                     <th>Subject</th>
                                     <th>Raw Mark</th>
                                     <th>Scaled Mark</th>
-                                    <th>Contribution</th>
+                                    <th>Units</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for subject in subjects %}
+                                {% for subject in atar_result.subject_results %}
                                 <tr>
-                                    <td class="fw-semibold">{{ subject.name }}</td>
-                                    <td>{{ subject.raw_mark }}%</td>
-                                    <td class="text-success fw-semibold">{{ subject.scaled_mark }}%</td>
-                                    <td>{{ subject.contribution }}</td>
+                                    <td class="fw-semibold">{{ subject.subject_name }}</td>
+                                    <td>{{ subject.hsc_mark }}{% if 'Extension' in subject.subject_name and subject.subject_name != 'Mathematics Extension 2' %}/50{% else %}/100{% endif %}</td>
+                                    <td class="text-success fw-semibold">{{ "%.1f"|format(subject.scaled_mark) }}%</td>
+                                    <td>{{ subject.units }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                             <tfoot class="table-light">
                                 <tr>
-                                    <th colspan="3" class="text-end">Total Contribution:</th>
-                                    <th class="fw-bold">{{ "%.1f"|format(estimated_atar) }}</th>
+                                    <th colspan="3" class="text-end">Aggregate Score:</th>
+                                    <th class="fw-bold">{{ atar_result.aggregate }}</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="3" class="text-end">Units Counted:</th>
+                                    <th class="fw-bold">{{ atar_result.units_counted }}</th>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
+                    {% endif %}
 
-                    <!-- Chart Section -->
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="mb-3 fw-bold">Raw vs Scaled Marks Comparison</h6>
-                            <canvas id="marksChart" width="400" height="200"></canvas>
+                    <!-- Important Notice -->
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i> Important Notice</h6>
                         </div>
-                    </div>
-
-                    <!-- Disclaimer -->
-                    <div class="alert alert-info mt-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Note:</strong> This is an estimate based on UAC scaling data. 
-                        Actual ATAR may vary based on assessment performance and other factors.
+                        <div class="card-body">
+                            <p><strong>ATAR Calculator - Educational Tool Only</strong></p>
+                            <p class="mb-2">This calculator provides estimates for planning purposes. Actual ATAR scores depend on many factors:</p>
+                            <ul>
+                                <li><strong>Individual Assessment Performance:</strong> Final exam results vs internal assessments</li>
+                                <li><strong>School Scaling Variations:</strong> Different schools may have different scaling</li>
+                                <li><strong>UAC Methodology Changes:</strong> UAC updates calculation methods annually</li>
+                                <li><strong>External Factors:</strong> Course difficulty, cohort performance, etc.</li>
+                            </ul>
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>For Official Information:</strong> Always consult UAC and university admission resources for accurate ATAR requirements.
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('atar_calculation') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    How ATAR is Calculated
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,84 +134,4 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Pass data from Flask to JavaScript
-window.chartData = {
-    subjects: {{ subjects|tojson|safe }}
-};
-
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('marksChart').getContext('2d');
-    
-    const subjectsData = window.chartData.subjects || [];
-    const labels = subjectsData.map(s => s.name);
-    const rawMarks = subjectsData.map(s => s.raw_mark);
-    const scaledMarks = subjectsData.map(s => s.scaled_mark);
-    
-    // Only create chart if we have data
-    if (labels.length > 0) {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Raw Mark',
-                        data: rawMarks,
-                        backgroundColor: 'rgba(26, 58, 92, 0.6)',
-                        borderColor: 'rgba(26, 58, 92, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Scaled Mark',
-                        data: scaledMarks,
-                        backgroundColor: 'rgba(200, 151, 43, 0.6)',
-                        borderColor: 'rgba(200, 151, 43, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Mark (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Subjects'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    } else {
-        // Hide chart section if no data
-        const chartSection = document.getElementById('marksChart').closest('.row');
-        if (chartSection) {
-            chartSection.style.display = 'none';
-        }
-    }
-});
-</script>
 {% endblock %}
