@@ -1,6 +1,40 @@
 // Task Organiser App - Main JavaScript
 
+// Responsive utilities
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+function isSmallMobile() {
+    return window.innerWidth <= 576;
+}
+
+// Handle responsive adjustments
+function handleResponsiveAdjustments() {
+    // Add mobile class to body for CSS targeting
+    if (isMobile()) {
+        document.body.classList.add('mobile-view');
+    } else {
+        document.body.classList.remove('mobile-view');
+    }
+    
+    if (isSmallMobile()) {
+        document.body.classList.add('small-mobile-view');
+    } else {
+        document.body.classList.remove('small-mobile-view');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initial responsive check
+    handleResponsiveAdjustments();
+    
+    // Update on resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleResponsiveAdjustments, 250);
+    });
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {

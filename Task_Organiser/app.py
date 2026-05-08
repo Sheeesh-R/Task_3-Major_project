@@ -36,7 +36,7 @@ def login_required(view):
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static')
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'taskmanager.db'),

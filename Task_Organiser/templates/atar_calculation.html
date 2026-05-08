@@ -214,6 +214,55 @@
                         </div>
                     </div>
 
+                    <!-- Regression Model Visualizations -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Regression Model Visualizations</h4>
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <p><strong>Visual Examples:</strong> See how polynomial regression models scale different subjects. These graphs show the relationship between raw HSC marks and scaled marks.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-center">English Advanced Scaling</h6>
+                                        <div class="text-center">
+                                            <img src="{{ url_for('static', filename='graphs/english_advanced_scaling.png') }}?v=2" alt="English Advanced Scaling" class="img-fluid border rounded" style="max-height: 300px;">
+                                        </div>
+                                        <p class="small text-muted text-center">Raw marks (0-100) → Scaled marks with polynomial curve</p>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-center">Mathematics Advanced Scaling</h6>
+                                        <div class="text-center">
+                                            <img src="{{ url_for('static', filename='graphs/math_advanced_scaling.png') }}?v=2" alt="Mathematics Advanced Scaling" class="img-fluid border rounded" style="max-height: 300px;">
+                                        </div>
+                                        <p class="small text-muted text-center">Higher scaling factor for STEM subjects</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-center">Physics Scaling</h6>
+                                        <div class="text-center">
+                                            <img src="{{ url_for('static', filename='graphs/physics_scaling.png') }}?v=2" alt="Physics Scaling" class="img-fluid border rounded" style="max-height: 300px;">
+                                        </div>
+                                        <p class="small text-muted text-center">Strong scaling for high marks</p>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-center">Design & Technology Scaling</h6>
+                                        <div class="text-center">
+                                            <img src="{{ url_for('static', filename='graphs/design_and_technology_scaling.png') }}?v=2" alt="Design & Technology Scaling" class="img-fluid border rounded" style="max-height: 300px;">
+                                        </div>
+                                        <p class="small text-muted text-center">Lower scaling for practical subjects</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>How to Read These Graphs:</strong> The x-axis shows your raw HSC mark, the y-axis shows the scaled mark used for ATAR calculation. Notice how different subjects have different scaling curves!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Technical Details -->
                     <div class="mb-5">
                         <h4 class="fw-bold text-secondary mb-3"><i class="fas fa-cog me-2"></i>Technical Details</h4>

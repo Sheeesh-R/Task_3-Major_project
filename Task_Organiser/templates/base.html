@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{% block title %}Task Manager{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -49,6 +49,8 @@
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .navbar {
@@ -307,13 +309,14 @@
             color: white;
             border-top: 3px solid var(--accent);
             padding: 2rem 0;
-            margin-top: 4rem;
+            margin-top: auto;
             box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         main.container {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            flex: 1;
         }
 
         /* Professional shadows */
@@ -480,6 +483,88 @@
             .task-toggle {
                 width: 36px;
                 height: 36px;
+            }
+        }
+
+        /* Additional responsive improvements */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        /* Better mobile navigation */
+        @media (max-width: 992px) {
+            .navbar-nav {
+                text-align: center;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-item {
+                margin: 0.25rem 0;
+            }
+            
+            .navbar-nav.ms-auto {
+                margin-left: 0 !important;
+                margin-top: 1rem;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding-top: 1rem;
+            }
+        }
+
+        /* Improved mobile cards */
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            /* Better mobile spacing */
+            .row.g-3 > [class*="col-"] {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Small mobile optimizations */
+        @media (max-width: 480px) {
+            .btn {
+                font-size: 0.875rem;
+                padding: 0.5rem 1rem;
+            }
+            
+            .form-control, .form-select {
+                font-size: 0.875rem;
+            }
+            
+            /* Ensure content doesn't overflow */
+            .container {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+                overflow-x: hidden;
+            }
+        }
+
+        
+        /* Better mobile table responsiveness */
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem;
+                vertical-align: middle;
+            }
+        }
+
+        /* Hide non-essential elements on very small screens */
+        @media (max-width: 400px) {
+            .d-none-d-xs {
+                display: none !important;
             }
         }
 
@@ -689,9 +774,6 @@
         }
         
         /* Footer styles */
-        .footer {
-            margin-top: auto;
-        }
         
         
         .footer a.hover-opacity-100:hover {
@@ -738,196 +820,6 @@
             box-shadow: 0 0 0 2px rgba(26, 58, 92, 0.25) !important;
             border-color: var(--primary) !important;
             outline: none !important;
-        }
-
-        /* Priority Widget Styles */
-        .priority-widget-collapsed {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-        }
-
-        .priority-widget-expanded {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-        }
-
-        .priority-toggle-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            box-shadow: var(--shadow-lg);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .priority-toggle-btn:hover {
-            background: var(--primary-light);
-            transform: scale(1.05);
-        }
-
-        .priority-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border: 2px solid white;
-        }
-
-        .priority-panel {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            width: 320px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-xl);
-            display: none;
-            max-height: 400px;
-            overflow: hidden;
-        }
-
-        .priority-widget-expanded .priority-panel {
-            display: block;
-        }
-
-        .priority-header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .priority-header h6 {
-            margin: 0;
-            font-weight: 600;
-            flex-grow: 1;
-        }
-
-        .priority-close-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 0.25rem;
-            border-radius: var(--border-radius-sm);
-            transition: background 0.2s ease;
-        }
-
-        .priority-close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .priority-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .priority-item {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: background 0.2s ease;
-        }
-
-        .priority-item:hover {
-            background: var(--light);
-        }
-
-        .priority-item:last-child {
-            border-bottom: none;
-        }
-
-        .priority-number {
-            width: 24px;
-            height: 24px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .priority-content {
-            flex-grow: 1;
-            min-width: 0;
-        }
-
-        .priority-title {
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: var(--text-primary);
-            margin-bottom: 0.125rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .priority-meta {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Mobile responsive for priority widget */
-        @media (max-width: 768px) {
-            .priority-widget-collapsed,
-            .priority-widget-expanded {
-                bottom: 1rem;
-                right: 1rem;
-            }
-
-            .priority-toggle-btn {
-                width: 50px;
-                height: 50px;
-            }
-
-            .priority-panel {
-                width: 280px;
-                right: -10px;
-            }
-
-            .priority-count {
-                width: 20px;
-                height: 20px;
-                font-size: 0.6875rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .priority-panel {
-                width: calc(100vw - 2rem);
-                right: -1rem;
-                left: 1rem;
-            }
         }
     </style>
 </head>
@@ -1001,25 +893,7 @@
         </div>
     </footer>
 
-    <!-- Priority Widget -->
-    <div id="priority-widget" class="priority-widget-collapsed">
-        <button id="priority-toggle" class="priority-toggle-btn">
-            <i class="fas fa-clipboard"></i>
-            <span id="priority-count" class="priority-count">0</span>
-        </button>
-        <div id="priority-panel" class="priority-panel">
-            <div class="priority-header">
-                <h6>Priority Tasks</h6>
-                <button id="priority-close" class="priority-close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="priority-list" class="priority-list">
-                <!-- Priority tasks will be populated here -->
-            </div>
-        </div>
-    </div>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-hide flash messages after 3 seconds (but not hidden tasks notification)
@@ -1037,52 +911,7 @@
                     }, 500);
                 }, 3000); // 3 seconds
             });
-            
-            // Priority Widget functionality
-            const priorityToggle = document.getElementById('priority-toggle');
-            const priorityPanel = document.getElementById('priority-panel');
-            const priorityClose = document.getElementById('priority-close');
-            const priorityWidget = document.getElementById('priority-widget');
-            
-            priorityToggle.addEventListener('click', function() {
-                priorityWidget.classList.toggle('priority-widget-expanded');
-            });
-            
-            priorityClose.addEventListener('click', function() {
-                priorityWidget.classList.remove('priority-widget-expanded');
-            });
-            
-            // Load priority tasks (this would be populated from the backend)
-            loadPriorityTasks();
         });
-        
-        function loadPriorityTasks() {
-            // This would typically be populated from the backend
-            // For now, showing placeholder functionality
-            const priorityList = document.getElementById('priority-list');
-            const priorityCount = document.getElementById('priority-count');
-            
-            // Placeholder data - replace with actual backend data
-            const urgentTasks = [
-                { title: 'Sample urgent task', subject: 'Mathematics', due: 'Tomorrow' }
-            ];
-            
-            priorityCount.textContent = urgentTasks.length;
-            
-            if (urgentTasks.length === 0) {
-                priorityList.innerHTML = '<p class="text-muted small mb-0">No urgent tasks</p>';
-            } else {
-                priorityList.innerHTML = urgentTasks.map((task, index) => `
-                    <div class="priority-item">
-                        <div class="priority-number">${index + 1}</div>
-                        <div class="priority-content">
-                            <div class="priority-title">${task.title}</div>
-                            <div class="priority-meta">${task.subject} · ${task.due}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
     </script>
 </body>
 </html>
