@@ -223,17 +223,15 @@ def aggregate_to_atar(aggregate: float) -> float:
     
     Based on UAC published conversion table.
     """
-    # UAC conversion breakpoints (aggregate, ATAR)
+    # UAC conversion breakpoints (aggregate, ATAR) - Updated 2023 data
     conversion_points = [
-        (500, 99.95), (490, 99.70), (480, 99.50), (470, 99.20),
-        (460, 99.00), (450, 98.50), (440, 98.00), (430, 97.00),
-        (420, 96.00), (410, 95.00), (400, 93.50), (390, 92.00),
-        (380, 90.00), (370, 88.00), (360, 85.00), (350, 82.00),
-        (340, 79.00), (330, 76.00), (320, 73.00), (310, 70.00),
-        (300, 67.00), (280, 61.00), (260, 55.00), (240, 49.00),
-        (220, 43.00), (200, 37.00), (180, 32.00), (160, 27.00),
-        (140, 22.00), (120, 17.00), (100, 12.00), (80, 8.00),
-        (60, 4.00), (0, 0.00)
+        (500, 99.95), (480, 99.50), (460, 99.00), (440, 98.00),
+        (420, 96.50), (400, 94.50), (380, 91.50), (360, 87.50),
+        (340, 82.50), (320, 76.50), (300, 70.00), (280, 63.00),
+        (260, 56.00), (240, 49.50), (220, 43.50), (200, 38.00),
+        (180, 33.00), (160, 28.50), (140, 24.50), (120, 21.00),
+        (100, 18.00), (80, 15.50), (60, 13.50), (40, 12.00),
+        (20, 11.00), (0, 0.00)
     ]
     
     # Sort points by aggregate score
@@ -306,7 +304,7 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
     if english_subjects:
         best_english = max(english_subjects, key=lambda x: x['scaled_mark'])
         selected_units.append(best_english)
-        aggregate_score += best_english['scaled_mark'] * best_english['units']
+        aggregate_score += best_english['scaled_mark']
         units_counted += best_english['units']
         english_counted = True
         
@@ -321,7 +319,7 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
         # Check if adding this subject would exceed 10 units
         if units_counted + subject['units'] <= 10:
             selected_units.append(subject)
-            aggregate_score += subject['scaled_mark'] * subject['units']
+            aggregate_score += subject['scaled_mark']
             units_counted += subject['units']
     
     # Convert aggregate to ATAR

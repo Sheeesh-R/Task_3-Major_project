@@ -3,19 +3,23 @@
 {% block title %}ATAR Predictor{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <!-- Header -->
-            <div class="text-center mb-5">
-                <h1 class="fw-bold mb-3" style="color: var(--primary);">ATAR Predictor</h1>
+            <div class="text-center mb-4 fade-in-up">
+                <h1 class="fw-bold mb-3" style="color: var(--primary);">
+                    <i class="fas fa-chart-line me-3"></i>ATAR Predictor
+                </h1>
                 <p class="text-secondary">Estimate your ATAR based on current subject performance</p>
             </div>
 
             <!-- Input Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0 fw-bold">Current Subject Marks</h5>
+            <div class="card mb-4 shadow fade-in-up">
+                <div class="card-header" style="background: var(--primary); color: white !important; border-bottom: 3px solid var(--accent);">
+                    <h5 class="mb-0 fw-bold" style="color: white !important;">
+                        <i class="fas fa-pencil-alt me-2"></i>Current Subject Marks
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('atar') }}">
@@ -27,6 +31,7 @@
                                            name="mark_{{ subject.id }}" value="{{ atar_result.subject_results[loop.index0].hsc_mark if atar_result else '' }}" 
                                            min="0" max="{{ '50' if 'Extension' in subject.name and subject.name != 'Mathematics Extension 2' else '100' }}" step="0.1" placeholder="Enter mark">
                                     <label for="mark_{{ subject.id }}" class="form-label">
+                                        <i class="fas fa-book me-1 text-primary"></i>
                                         {{ subject.name }} ({{ subject.units or 2 }} units)
                                         {% if 'Extension' in subject.name and subject.name != 'Mathematics Extension 2' %}
                                         <small class="text-muted">(out of 50)</small>
@@ -40,7 +45,7 @@
                         </div>
                         
                         <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow" style="background: var(--primary); border-color: var(--primary);">
                                 <i class="fas fa-chart-line me-2"></i>Predict My ATAR
                             </button>
                         </div>
@@ -49,17 +54,19 @@
             </div>
 
             <!-- Results Section -->
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0 fw-bold">ATAR Prediction Results</h5>
+            <div class="card shadow fade-in-up">
+                <div class="card-header" style="background: var(--success); color: white !important; border-bottom: 3px solid var(--accent);">
+                    <h5 class="mb-0 fw-bold" style="color: white !important;">
+                        <i class="fas fa-trophy me-2"></i>ATAR Prediction Results
+                    </h5>
                 </div>
                 <div class="card-body">
                     <!-- ATAR Display -->
                     <div class="text-center mb-4">
-                        <div class="d-inline-block bg-success text-white rounded-circle p-4" style="width: 150px; height: 150px;">
+                        <div class="d-inline-block text-white rounded-circle p-4 shadow-lg" style="background: var(--success); width: 180px; height: 180px; border: 3px solid var(--accent);">
                             <div class="d-flex flex-column h-100 justify-content-center align-items-center">
-                                <small class="mb-1">Estimated ATAR</small>
-                                <h2 class="mb-0 fw-bold">{{ "%.1f"|format(estimated_atar) }}</h2>
+                                <small class="mb-1" style="font-size: 0.9rem;">Estimated ATAR</small>
+                                <h1 class="mb-0 fw-bold text-white" style="font-size: 2.5rem;">{{ "%.1f"|format(estimated_atar) }}</h1>
                             </div>
                         </div>
                     </div>
@@ -68,12 +75,12 @@
                     {% if atar_result %}
                     <div class="table-responsive mb-4">
                         <table class="table table-hover">
-                            <thead class="table-light">
+                            <thead style="background: var(--primary); color: white;">
                                 <tr>
-                                    <th>Subject</th>
-                                    <th>Raw Mark</th>
-                                    <th>Scaled Mark</th>
-                                    <th>Units</th>
+                                    <th><i class="fas fa-book me-2"></i>Subject</th>
+                                    <th><i class="fas fa-edit me-2"></i>Raw Mark</th>
+                                    <th><i class="fas fa-chart-bar me-2"></i>Scaled Mark</th>
+                                    <th><i class="fas fa-layer-group me-2"></i>Units</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -86,13 +93,13 @@
                                 </tr>
                                 {% endfor %}
                             </tbody>
-                            <tfoot class="table-light">
+                            <tfoot style="background: var(--accent); color: white;">
                                 <tr>
-                                    <th colspan="3" class="text-end">Aggregate Score:</th>
+                                    <th colspan="3" class="text-end"><i class="fas fa-calculator me-2"></i>Aggregate Score:</th>
                                     <th class="fw-bold">{{ atar_result.aggregate }}</th>
                                 </tr>
                                 <tr>
-                                    <th colspan="3" class="text-end">Units Counted:</th>
+                                    <th colspan="3" class="text-end"><i class="fas fa-layer-group me-2"></i>Units Counted:</th>
                                     <th class="fw-bold">{{ atar_result.units_counted }}</th>
                                 </tr>
                             </tfoot>
@@ -101,8 +108,8 @@
                     {% endif %}
 
                     <!-- Important Notice -->
-                    <div class="card border-warning">
-                        <div class="card-header bg-warning text-dark">
+                    <div class="card border-warning shadow-sm">
+                        <div class="card-header" style="background: var(--warning); color: white; border-bottom: 3px solid var(--accent);">
                             <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i> Important Notice</h6>
                         </div>
                         <div class="card-body">
@@ -114,12 +121,12 @@
                                 <li><strong>UAC Methodology Changes:</strong> UAC updates calculation methods annually</li>
                                 <li><strong>External Factors:</strong> Course difficulty, cohort performance, etc.</li>
                             </ul>
-                            <div class="alert alert-info mt-3">
+                            <div class="alert mt-3" style="background: var(--info); color: white; border: none; border-radius: var(--border-radius-lg);">
                                 <i class="fas fa-lightbulb me-2"></i>
                                 <strong>For Official Information:</strong> Always consult UAC and university admission resources for accurate ATAR requirements.
                             </div>
                             <div class="text-center mt-3">
-                                <a href="{{ url_for('atar_calculation') }}" class="btn btn-outline-primary">
+                                <a href="{{ url_for('atar_calculation') }}" class="btn btn-outline-primary shadow" style="border-color: var(--primary); color: var(--primary);">
                                     <i class="fas fa-info-circle me-2"></i>
                                     How ATAR is Calculated
                                 </a>
