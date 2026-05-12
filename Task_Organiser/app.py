@@ -346,16 +346,13 @@ def register_routes(app):
             current_subject = db.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', 
                                         (subject_id, g.user['id'])).fetchone()
             
-            # Fetch assessment results for this subject (assignment tasks only)
+            # Fetch assessment results for this subject
             if current_subject:
                 assessment_results = db.execute('''
-                    SELECT ar.task_name, ar.weight, ar.raw_mark, ar.max_mark, ar.date_recorded
-                    FROM assessment_results ar
-                    JOIN tasks t ON ar.task_name = t.title
-                    WHERE ar.subject_id = ? AND ar.user_id = ? AND t.category_id = (
-                        SELECT id FROM categories WHERE name = 'Assignments'
-                    )
-                    ORDER BY ar.date_recorded ASC
+                    SELECT task_name, weight, raw_mark, max_mark, date_recorded
+                    FROM assessment_results 
+                    WHERE subject_id = ? AND user_id = ? 
+                    ORDER BY date_recorded ASC
                 ''', (subject_id, g.user['id'])).fetchall()
                 
                 # Convert to list of dictionaries and calculate percentage
@@ -552,6 +549,26 @@ def register_routes(app):
                 if 'target_mark' not in subject_dict:
                     subject_dict['target_mark'] = None
                 if 'estimated_mark' not in subject_dict:
+                    subject_dict['estimated_mark'] = 0
+                
+                # Calculate estimated mark from assessment results
+                assessment_results = db.execute('''
+                    SELECT weight, raw_mark, max_mark 
+                    FROM assessment_results 
+                    WHERE subject_id = ? AND user_id = ?
+                ''', (subject_dict['id'], g.user['id'])).fetchall()
+                
+                if assessment_results:
+                    total_weighted_score = 0
+                    total_weight = 0
+                    for result in assessment_results:
+                        percentage = (result['raw_mark'] / result['max_mark']) * 100 if result['max_mark'] > 0 else 0
+                        weighted_score = percentage * (result['weight'] / 100)
+                        total_weighted_score += weighted_score
+                        total_weight += result['weight']
+                    
+                    subject_dict['estimated_mark'] = round(total_weighted_score, 1) if total_weight > 0 else 0
+                else:
                     subject_dict['estimated_mark'] = 0
                 
                 # Calculate actual task count for this subject
@@ -908,7 +925,7 @@ def register_routes(app):
             else:
                 db.execute('''
                     INSERT INTO assessment_results 
-                    (subject_id, user_id, assessment_name, weight, raw_mark, max_mark, date_recorded)
+                    (subject_id, user_id, task_name, weight, raw_mark, max_mark, date_recorded)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (subject_id, g.user['id'], assessment_name, weight, raw_mark, max_mark, 
                       datetime.now().isoformat()))

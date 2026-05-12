@@ -31,7 +31,7 @@
                                     <li><a class="dropdown-item" href="{{ url_for('index') }}?subject_id={{ subject.id }}">
                                         <i class="fas fa-tasks me-2"></i>View Tasks
                                     </a></li>
-                                    <li><a class="dropdown-item" href="#">
+                                    <li><a class="dropdown-item" href="{{ url_for('subject_marks', subject_id=subject.id) }}">
                                         <i class="fas fa-chart-line me-2"></i>View Marks
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
@@ -52,7 +52,7 @@
                         <!-- Progress Indicator -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted">Current Progress</small>
+                                <small class="text-muted">Assessment Average</small>
                                 <small class="fw-semibold">{{ subject.estimated_mark }}%</small>
                             </div>
                             <div class="progress" style="height: 8px;">
