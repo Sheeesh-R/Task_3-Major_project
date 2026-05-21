@@ -21,7 +21,7 @@ import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, current_app, session, g, jsonify
 from .db import get_db, init_app
-import hashlib
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -194,7 +194,7 @@ def register_routes(app):
                 error = f'Email {email} is already registered.'
 
             if error is None:
-                password_hash = hashlib.sha256(password.encode()).hexdigest()
+                password_hash = generate_password_hash(password)
                 db.execute('INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)',
                            (username, password_hash, email))
                 db.commit()
@@ -222,7 +222,7 @@ def register_routes(app):
 
             if user is None:
                 error = 'Incorrect username.'
-            elif hashlib.sha256(password.encode()).hexdigest() != user['password_hash']:
+            elif not check_password_hash(user['password_hash'], password):
                 error = 'Incorrect password.'
 
             if error is None:
