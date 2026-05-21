@@ -23,6 +23,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, cur
 from .db import get_db, init_app
 import hashlib
 from functools import wraps
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def login_required(view):
@@ -38,7 +42,7 @@ def login_required(view):
 def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=os.environ.get('SECRET_KEY'),
         DATABASE=os.path.join(app.instance_path, 'taskmanager.db'),
         SCHEMA_PATH='task_schema.sql'
     )
@@ -180,6 +184,8 @@ def register_routes(app):
                 error = 'Username is required.'
             elif not password:
                 error = 'Password is required.'
+            elif len(password) < 8:
+                error = 'Password must be at least 8 characters long.'
             elif not email:
                 error = 'Email is required.'
             elif db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone() is not None:
