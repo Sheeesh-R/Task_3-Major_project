@@ -14,6 +14,7 @@
         
         <div class="card-body p-4 p-lg-5">
           <form method="post" action="{{ url_for('add_task') }}">
+            {{ csrf_field() }}
             <!-- Title field -->
             <div class="mb-4">
               <label for="title" class="form-label fw-semibold">

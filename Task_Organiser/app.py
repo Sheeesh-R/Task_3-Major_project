@@ -24,6 +24,7 @@ from .db import get_db, init_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
 
 # Load environment variables from .env file
 load_dotenv()
@@ -42,9 +43,10 @@ def login_required(view):
 def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY'),
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'fallback-for-dev-only'),
         DATABASE=os.path.join(app.instance_path, 'taskmanager.db'),
-        SCHEMA_PATH='task_schema.sql'
+        SCHEMA_PATH='task_schema.sql',
+        WTF_CSRF_ENABLED=True
     )
     
     # Register custom Jinja2 filter HERE (inside create_app)
@@ -67,6 +69,8 @@ def create_app():
     
     os.makedirs(app.instance_path, exist_ok=True)
     init_app(app)
+    # Enable CSRF protection for forms and state-changing requests
+    csrf = CSRFProtect(app)
     
     # Database migration for subjects table
     with app.app_context():
@@ -528,6 +532,8 @@ def register_routes(app):
             flash(f'Error updating task status: {str(e)}', 'error')
 
         return redirect(url_for('index'))
+
+    
 
     # Subjects page
     @app.route('/subjects')

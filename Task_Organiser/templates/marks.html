@@ -54,6 +54,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Add Assessment Result</h5>
                     <form method="POST" action="{{ url_for('add_assessment_result', subject_id=subject.id) }}">
+                        {{ csrf_field() }}
                         <div class="mb-2">
                             <label for="assessment_name" class="form-label">Assessment Name</label>
                             <input type="text" class="form-control" id="assessment_name" name="assessment_name" required>
@@ -120,6 +121,7 @@
                                         <td>{{ result.date_recorded[:10] if result.date_recorded else 'N/A' }}</td>
                                         <td>
                                             <form method="POST" action="{{ url_for('delete_assessment_result', subject_id=subject.id, result_id=result.id) }}" 
+                                                style="display:inline;">{{ csrf_field() }}
                                                   onsubmit="return confirm('Are you sure you want to delete this assessment result?')">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="fas fa-trash"></i>
