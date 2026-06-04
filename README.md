@@ -29,7 +29,11 @@ A Flask-based task management application designed to help students organize the
 - **Hidden Tasks Info**: Informative message about hidden completed tasks
 
 ### Technical Features
+- **Sidebar Navigation**: Desktop sidebar with subject shortcuts and quick actions
+- **Subject Editing**: Edit subject name, units, and target mark from the UI
 - **AJAX Updates**: Real-time task status toggling without page reload
+- **CSRF Protection**: Server-side and AJAX CSRF token handling via Flask-WTF
+- **Database Optimization**: Added SQLite indexes and pagination for larger datasets
 - **Dynamic Styling**: JavaScript-powered category colors and animations
 - **Clean Code Architecture**: Separated concerns between templates and logic
 - **Error Handling**: Robust error handling and user feedback
@@ -102,7 +106,22 @@ The application includes extensive mobile optimizations:
 - Optimized calendar display on mobile devices
 
 ## Running Tests
-Currently, the project does not include automated tests. To contribute tests, consider using `pytest` with Flask's testing utilities.
+The repository includes automated tests with Python's built-in `unittest` framework.
+
+Run tests from the project root:
+```bash
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
+## Docker
+Build and run the application using Docker:
+```bash
+docker build -t task-organiser-app .
+docker run -p 5000:5000 task-organiser-app
+```
+
+## Continuous Integration
+A GitHub Actions workflow is included at `.github/workflows/ci.yml` to install dependencies, run unit tests, and validate Python syntax on push and pull requests.
 
 ## Contributing
 When contributing to this project:

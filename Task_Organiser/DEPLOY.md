@@ -52,7 +52,7 @@ project_home = '/home/yourusername/Task_Organiser_App'
 if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
-from app import app as application  # noqa
+from run import app as application  # noqa
 ```
 - Save the file and click **Reload** in the Web tab.
 
@@ -69,3 +69,7 @@ git pull
   ```
 - After pulling, reactivate the virtualenv if dependencies changed: `source venv/bin/activate && pip install -r requirements.txt`.
 - Reload the web app after any code or dependency changes.
+
+## 10. Docker and CI notes
+- A `Dockerfile` is included for container-based deployment and local development.
+- A GitHub Actions workflow is available at `.github/workflows/ci.yml` for automated testing on pushes and pull requests.

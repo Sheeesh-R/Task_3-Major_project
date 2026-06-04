@@ -825,18 +825,96 @@
             border-color: var(--primary) !important;
             outline: none !important;
         }
+
+        .btn-strawberry {
+            background: linear-gradient(135deg, #ff6b8b, #ff3f6f);
+            color: #fff;
+            border: none;
+            box-shadow: 0 8px 20px rgba(255, 107, 139, 0.25);
+        }
+
+        .btn-strawberry:hover,
+        .btn-strawberry:focus {
+            background: linear-gradient(135deg, #ff5071, #ff1f50);
+            color: #fff;
+        }
+
+        .offcanvas-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .offcanvas-body .list-group-item {
+            border: none;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .offcanvas-title-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .burger-menu-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            position: relative;
+            background: var(--accent);
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .burger-menu-btn:hover,
+        .burger-menu-btn:focus {
+            background: linear-gradient(135deg, var(--accent), #b08223);
+            outline: none;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+        }
+
+        .burger-menu-btn span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            border-radius: 2px;
+            background: #fff;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .burger-menu-btn span:nth-child(1) {
+            top: 12px;
+        }
+
+        .burger-menu-btn span:nth-child(2) {
+            top: 20px;
+        }
+
+        .burger-menu-btn span:nth-child(3) {
+            top: 28px;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <i class="fas fa-bars"></i>
+            <button class="burger-menu-btn me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 <i class="fas fa-graduation-cap me-2"></i>HSC Planner
             </a>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-collapse">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Dashboard</a>
@@ -866,20 +944,49 @@
         </div>
     </nav>
 
-    <main class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title offcanvas-title-brand" id="appMenuLabel">
+                <span class="text-primary"><i class="fas fa-graduation-cap"></i></span>
+                Navigation
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="list-group list-group-flush mb-4">
+                <a href="{{ url_for('index') }}" class="list-group-item list-group-item-action">Dashboard</a>
+                <a href="{{ url_for('subjects') }}" class="list-group-item list-group-item-action">My Subjects</a>
+                <a href="{{ url_for('atar') }}" class="list-group-item list-group-item-action">ATAR Predictor</a>
+                <a href="{{ url_for('index') }}?view=all" class="list-group-item list-group-item-action">All Tasks</a>
+            </div>
 
-        {% block content %}{% endblock %}
-    </main>
+            {% if nav_subjects %}
+            <h6 class="text-uppercase text-muted small mb-3">Subjects</h6>
+            <div class="list-group list-group-flush">
+                {% for nav_subject in nav_subjects %}
+                    <a href="{{ url_for('index', subject_id=nav_subject['id']) }}" class="list-group-item list-group-item-action">
+                        {{ nav_subject['name'] }}
+                    </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <main class="container mt-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
 
     <footer class="footer mt-auto">
         <div class="container py-2 py-md-3">

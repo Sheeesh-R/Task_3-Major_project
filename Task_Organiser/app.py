@@ -119,6 +119,17 @@ def create_app():
         else:
             g.user = get_db().execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
 
+    @app.context_processor
+    def inject_nav_subjects():
+        if g.user:
+            try:
+                db = get_db()
+                nav_subjects = db.execute('SELECT id, name FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
+                return {'nav_subjects': nav_subjects}
+            except Exception:
+                return {'nav_subjects': []}
+        return {'nav_subjects': []}
+
     @app.template_filter('format_datetime')
     def format_datetime(value, format='%Y-%m-%d'):
         if value is None:
@@ -677,6 +688,53 @@ def register_routes(app):
             flash(f'Error deleting subject: {str(e)}', 'error')
         
         return redirect(url_for('subjects'))
+
+    @app.route('/subjects/<int:subject_id>/edit', methods=['GET', 'POST'])
+    @login_required
+    def edit_subject(subject_id):
+        """Handle editing an existing subject."""
+        db = get_db()
+        subject = db.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', (subject_id, g.user['id'])).fetchone()
+
+        if subject is None:
+            flash('Subject not found', 'error')
+            return redirect(url_for('subjects'))
+
+        if request.method == 'POST':
+            subject_name = request.form.get('subject_name', '').strip()
+            units = request.form.get('units', '2')
+            target_mark = request.form.get('target_mark')
+
+            error = None
+            if not subject_name:
+                error = 'Subject name is required.'
+            elif units not in ['1', '2']:
+                error = 'Units must be 1 or 2.'
+            else:
+                existing = db.execute(
+                    'SELECT id FROM subjects WHERE user_id = ? AND name = ? AND id != ?', 
+                    (g.user['id'], subject_name, subject_id)
+                ).fetchone()
+                if existing:
+                    error = f'Subject "{subject_name}" already exists.'
+
+            if error is None:
+                try:
+                    target_mark_value = int(target_mark) if target_mark and target_mark.strip() != '' else None
+                    db.execute(
+                        'UPDATE subjects SET name = ?, units = ?, target_mark = ? WHERE id = ? AND user_id = ?',
+                        (subject_name, int(units), target_mark_value, subject_id, g.user['id'])
+                    )
+                    db.commit()
+                    flash('Subject updated successfully!', 'success')
+                    return redirect(url_for('subjects'))
+                except Exception as e:
+                    db.rollback()
+                    flash(f'Error updating subject: {str(e)}', 'error')
+            else:
+                flash(error, 'error')
+
+        return render_template('edit_subject.html', subject=dict(subject))
 
     # Test route to verify routing works
     @app.route('/test')

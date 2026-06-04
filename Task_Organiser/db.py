@@ -30,28 +30,45 @@ def init_db():
 def update_db_schema():
     """Apply database schema updates for HSC Study Planner"""
     db = get_db()
-    
+
+    def has_index(name):
+        return db.execute("SELECT name FROM sqlite_master WHERE type='index' AND name = ?", (name,)).fetchone() is not None
+
+    def create_index(name, sql):
+        try:
+            if not has_index(name):
+                db.execute(sql)
+        except sqlite3.OperationalError:
+            pass
+
     # Check if subjects table exists
     try:
         db.execute('SELECT 1 FROM subjects LIMIT 1')
         subjects_exists = True
     except sqlite3.OperationalError:
         subjects_exists = False
-    
+
     # Check if assessment_results table exists
     try:
         db.execute('SELECT 1 FROM assessment_results LIMIT 1')
         assessment_results_exists = True
     except sqlite3.OperationalError:
         assessment_results_exists = False
-    
+
+    # Check if tasks table exists
+    try:
+        db.execute('SELECT 1 FROM tasks LIMIT 1')
+        tasks_exists = True
+    except sqlite3.OperationalError:
+        tasks_exists = False
+
     # Check if tasks table has subject_id column
     try:
         db.execute('SELECT subject_id FROM tasks LIMIT 1')
         subject_id_exists = True
     except sqlite3.OperationalError:
         subject_id_exists = False
-    
+
     # Apply schema updates if needed
     if not subjects_exists or not assessment_results_exists or not subject_id_exists:
         schema_updates_path = os.path.join(current_app.root_path, 'schema_updates.sql')
@@ -64,6 +81,21 @@ def update_db_schema():
             click.echo('Schema updates file not found.')
     else:
         click.echo('Database schema is up to date.')
+
+    if tasks_exists:
+        create_index('idx_tasks_user_id', 'CREATE INDEX idx_tasks_user_id ON tasks (user_id)')
+        create_index('idx_tasks_subject_id', 'CREATE INDEX idx_tasks_subject_id ON tasks (subject_id)')
+        create_index('idx_tasks_status', 'CREATE INDEX idx_tasks_status ON tasks (status)')
+        create_index('idx_tasks_priority', 'CREATE INDEX idx_tasks_priority ON tasks (priority)')
+
+    if subjects_exists:
+        create_index('idx_subjects_user_id', 'CREATE INDEX idx_subjects_user_id ON subjects (user_id)')
+
+    if assessment_results_exists:
+        create_index('idx_assessment_results_subject_user', 'CREATE INDEX idx_assessment_results_subject_user ON assessment_results (subject_id, user_id)')
+
+    if tasks_exists or subjects_exists or assessment_results_exists:
+        db.commit()
 
 
 def init_app(app):

@@ -49,3 +49,10 @@ INSERT OR IGNORE INTO subjects (name, user_id) VALUES
 ('Economics', 1),
 ('Business Studies', 1),
 ('Visual Arts', 1);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks (user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_subject_id ON tasks (subject_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status);
+CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority);
+CREATE INDEX IF NOT EXISTS idx_subjects_user_id ON subjects (user_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_results_subject_user ON assessment_results (subject_id, user_id);
