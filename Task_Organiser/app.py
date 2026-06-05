@@ -18,6 +18,7 @@ Features:
 """
 
 import os
+import logging
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, current_app, session, g, jsonify
 from .db import get_db, init_app
@@ -42,12 +43,18 @@ def login_required(view):
 
 def create_app():
     app = Flask(__name__, static_folder='static')
+    # Basic logging configuration
+    logging.basicConfig(level=os.environ.get('LOG_LEVEL', 'INFO'))
+    app.logger.setLevel(logging.getLevelName(os.environ.get('LOG_LEVEL', 'INFO')))
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'fallback-for-dev-only'),
         DATABASE=os.path.join(app.instance_path, 'taskmanager.db'),
         SCHEMA_PATH='task_schema.sql',
         WTF_CSRF_ENABLED=True
     )
+    # Warn if running with fallback secret key
+    if app.config.get('SECRET_KEY') == 'fallback-for-dev-only':
+        app.logger.warning('SECRET_KEY not set in environment; using insecure fallback (development only)')
     
     # Register custom Jinja2 filter HERE (inside create_app)
     @app.template_filter('date_filter')
@@ -64,7 +71,8 @@ def create_app():
         try:
             date_obj = datetime.strptime(str(date_value), '%Y-%m-%d')
             return date_obj.strftime('%Y-%m-%d')
-        except:
+        except Exception:
+            current_app.logger.exception('Failed to parse date for date_filter')
             return str(date_value)
     
     os.makedirs(app.instance_path, exist_ok=True)
@@ -82,11 +90,11 @@ def create_app():
             
             if 'units' not in columns:
                 db.execute('ALTER TABLE subjects ADD COLUMN units INTEGER NOT NULL DEFAULT 2')
-                print("Added 'units' column to subjects table")
+                app.logger.info("Added 'units' column to subjects table")
             
             if 'target_mark' not in columns:
                 db.execute('ALTER TABLE subjects ADD COLUMN target_mark INTEGER')
-                print("Added 'target_mark' column to subjects table")
+                app.logger.info("Added 'target_mark' column to subjects table")
                 
             # Check if atar_predictions table exists
             cursor = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='atar_predictions'")
@@ -103,11 +111,11 @@ def create_app():
                         FOREIGN KEY (user_id) REFERENCES users (id)
                     )
                 ''')
-                print("Created 'atar_predictions' table")
+                app.logger.info("Created 'atar_predictions' table")
                 
             db.commit()
         except Exception as e:
-            print(f"Migration error: {e}")
+            app.logger.exception('Migration error while updating database schema')
     
     register_routes(app)
 
@@ -126,7 +134,8 @@ def create_app():
                 db = get_db()
                 nav_subjects = db.execute('SELECT id, name FROM subjects WHERE user_id = ? ORDER BY name', (g.user['id'],)).fetchall()
                 return {'nav_subjects': nav_subjects}
-            except Exception:
+            except Exception as e:
+                current_app.logger.exception('Failed to load navigation subjects')
                 return {'nav_subjects': []}
         return {'nav_subjects': []}
 
@@ -611,7 +620,7 @@ def register_routes(app):
     @login_required
     def add_subject():
         """Handle adding a new subject for the current user."""
-        print("DEBUG: add_subject route reached")  # Debug print
+        app.logger.debug("add_subject route reached")  # Debug log
         db = get_db()
         try:
             subject_data = request.form.get('subject_name')
@@ -623,7 +632,7 @@ def register_routes(app):
                 units = 2  # Default to 2 units if not specified
             target_mark = request.form.get('target_mark')
             
-            print(f"DEBUG: subject_name={subject_name}, units={units}, target_mark={target_mark}")  # Debug print
+            app.logger.debug("subject_name=%s, units=%s, target_mark=%s", subject_name, units, target_mark)
             
             if subject_name:
                 # Check if subject already exists for this user
@@ -634,7 +643,7 @@ def register_routes(app):
                 
                 if existing:
                     flash(f'Subject "{subject_name}" already exists!', 'error')
-                    print("DEBUG: Subject already exists for this user")  # Debug print
+                    app.logger.debug("Subject already exists for this user")
                 else:
                     cursor = db.execute(
                         'INSERT INTO subjects (user_id, name, units, target_mark) VALUES (?, ?, ?, ?)',
@@ -642,10 +651,10 @@ def register_routes(app):
                     )
                     db.commit()
                     flash(f'Subject "{subject_name}" added successfully!', 'success')
-                    print("DEBUG: Subject added successfully")  # Debug print
+                    app.logger.debug("Subject added successfully")
             else:
                 flash('Please select a subject name.', 'error')
-                print("DEBUG: No subject name provided")  # Debug print
+                app.logger.debug("No subject name provided")
         except Exception as e:
             db.rollback()
             error_msg = str(e)
@@ -653,7 +662,7 @@ def register_routes(app):
                 flash(f'Subject "{subject_name}" already exists in the system. Please choose a different name or contact support.', 'error')
             else:
                 flash(f'Error adding subject: {error_msg}', 'error')
-            print(f"DEBUG: Error: {error_msg}")  # Debug print
+            app.logger.debug("Error adding subject: %s", error_msg)
         
         return redirect(url_for('subjects'))
 
@@ -797,14 +806,14 @@ def register_routes(app):
                             return redirect(url_for('atar'))
                 
                 # Debug: print what we collected
-                print(f"DEBUG: subject_marks = {subject_marks}")
+                app.logger.debug("subject_marks = %s", subject_marks)
                 
                 if subject_marks:
                     try:
                         # Calculate ATAR using the new atar_data module
                         atar_result = calculate_atar_estimate(subject_marks)
-                        print(f"DEBUG: atar_result = {atar_result}")
-                        print(f"DEBUG: subject_results = {atar_result.get('subject_results', 'NOT FOUND')}")
+                        app.logger.debug("atar_result = %s", atar_result)
+                        app.logger.debug("subject_results = %s", atar_result.get('subject_results', 'NOT FOUND'))
                         
                         # Save prediction to database
                         db.execute('''INSERT INTO atar_predictions (user_id, prediction_date, aggregate_score, atar_score) VALUES (?, ?, ?, ?)''', (g.user['id'], datetime.now().isoformat(), atar_result['aggregate'], atar_result['atar']))

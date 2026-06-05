@@ -282,16 +282,19 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
         units = subject.get('units', 2)
         
         scaled_mark = get_scaled_mark(subject_name, hsc_mark)
-        
+        # Contribution is scaled mark multiplied by units (what counts toward aggregate)
+        contribution = scaled_mark * units
+
         subject_results.append({
             'subject_name': subject_name,
             'hsc_mark': hsc_mark,
             'scaled_mark': scaled_mark,
-            'units': units
+            'units': units,
+            'contribution': contribution
         })
     
-    # Sort subjects by scaled mark (descending) for best units selection
-    subject_results.sort(key=lambda x: x['scaled_mark'], reverse=True)
+    # Sort subjects by contribution (scaled_mark * units) descending
+    subject_results.sort(key=lambda x: x['contribution'], reverse=True)
     
     # Select best units (mandatory English + best remaining)
     selected_units = []
@@ -299,15 +302,20 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
     aggregate_score = 0.0
     units_counted = 0
     
-    # First, include best English subject (mandatory)
+    # First, include best English subject (mandatory). Use contribution to pick best.
     english_subjects = [s for s in subject_results if 'English' in s['subject_name']]
     if english_subjects:
-        best_english = max(english_subjects, key=lambda x: x['scaled_mark'])
+        best_english = max(english_subjects, key=lambda x: x['contribution'])
+        # Ensure English counts at least 2 units (defensive)
+        if best_english['units'] < 2:
+            best_english['units'] = 2
+            best_english['contribution'] = best_english['scaled_mark'] * best_english['units']
+
         selected_units.append(best_english)
-        aggregate_score += best_english['scaled_mark']
+        aggregate_score += best_english['contribution']
         units_counted += best_english['units']
         english_counted = True
-        
+
         # Remove used English subject from list
         subject_results = [s for s in subject_results if s != best_english]
     
@@ -315,11 +323,11 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
     for subject in subject_results:
         if units_counted >= 10:
             break
-        
+
         # Check if adding this subject would exceed 10 units
         if units_counted + subject['units'] <= 10:
             selected_units.append(subject)
-            aggregate_score += subject['scaled_mark']
+            aggregate_score += subject['contribution']
             units_counted += subject['units']
     
     # Convert aggregate to ATAR

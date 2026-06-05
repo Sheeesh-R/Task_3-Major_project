@@ -5,6 +5,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 import os
+import logging
 
 # Import our scaling data
 from atar_data import SUBJECT_SCALING_POINTS
@@ -13,7 +14,7 @@ def create_scaling_graph(subject_name, output_path):
     """Create a scaling graph for a specific subject."""
     
     if subject_name not in SUBJECT_SCALING_POINTS:
-        print(f"Subject {subject_name} not found in scaling data")
+        logging.getLogger(__name__).warning('Subject %s not found in scaling data', subject_name)
         return
     
     # Get scaling data points
@@ -75,7 +76,7 @@ def create_scaling_graph(subject_name, output_path):
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
     plt.close()
     
-    print(f"Graph saved: {output_path}")
+    logging.getLogger(__name__).info('Graph saved: %s', output_path)
 
 def main():
     """Generate scaling graphs for key subjects."""
@@ -97,7 +98,7 @@ def main():
         output_path = os.path.join(graphs_dir, filename)
         create_scaling_graph(subject, output_path)
     
-    print("All scaling graphs generated successfully!")
+    logging.getLogger(__name__).info('All scaling graphs generated successfully!')
 
 if __name__ == "__main__":
     main()

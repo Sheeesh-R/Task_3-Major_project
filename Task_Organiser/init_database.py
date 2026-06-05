@@ -1,8 +1,15 @@
 import os
 import sqlite3
+import logging
 from app import create_app
 
-def init_db():
+
+def init_db() -> None:
+    """Create a fresh database by applying the bundled schema.
+
+    This removes any existing database file and re-initializes it.
+    """
+    logging.basicConfig(level=logging.INFO)
     # Create the Flask app
     app = create_app()
     
@@ -29,7 +36,8 @@ def init_db():
         conn.commit()
         conn.close()
         
-        print(f"Database initialized successfully at {db_path}")
+        logging.getLogger(__name__).info('Database initialized successfully at %s', db_path)
+
 
 if __name__ == '__main__':
     init_db()

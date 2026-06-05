@@ -1,11 +1,13 @@
 import os
 import sqlite3
+import logging
 
 import click
 from flask import current_app, g
 
 
-def get_db():
+def get_db() -> sqlite3.Connection:
+    """Return a SQLite connection for the current application context."""
     if 'db' not in g:
         database_path = current_app.config['DATABASE']
         g.db = sqlite3.connect(database_path)
@@ -13,14 +15,16 @@ def get_db():
     return g.db
 
 
-def close_db(e=None):
+def close_db(e: Exception | None = None) -> None:
+    """Close and remove the database connection from the application context."""
     db = g.pop('db', None)
 
     if db is not None:
         db.close()
 
 
-def init_db():
+def init_db() -> None:
+    """Initialize the database using the bundled schema file."""
     db = get_db()
     schema_path = os.path.join(current_app.root_path, current_app.config.get('SCHEMA_PATH', 'task_schema.sql'))
     with open(schema_path, 'r', encoding='utf-8') as f:
@@ -34,12 +38,12 @@ def update_db_schema():
     def has_index(name):
         return db.execute("SELECT name FROM sqlite_master WHERE type='index' AND name = ?", (name,)).fetchone() is not None
 
-    def create_index(name, sql):
+    def create_index(name: str, sql: str) -> None:
         try:
             if not has_index(name):
                 db.execute(sql)
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            logging.getLogger(__name__).warning('Failed to create index %s: %s', name, e)
 
     # Check if subjects table exists
     try:
@@ -78,7 +82,7 @@ def update_db_schema():
             db.commit()
             click.echo('Database schema updated.')
         else:
-            click.echo('Schema updates file not found.')
+            logging.getLogger(__name__).warning('Schema updates file not found at %s', schema_updates_path)
     else:
         click.echo('Database schema is up to date.')
 
@@ -115,7 +119,7 @@ def init_app(app):
         except sqlite3.OperationalError:
             # If the query fails, initialize the database
             init_db()
-            click.echo('Initialized the database.')
+            logging.getLogger(__name__).info('Initialized the database.')
             # Apply schema updates after initialization
             update_db_schema()
 
@@ -123,8 +127,8 @@ def init_app(app):
     def init_db_command():
         """Clear existing data and create new tables."""
         init_db()
-        click.echo('Initialized the database.')
-    
+        logging.getLogger(__name__).info('Initialized the database.')
+
     @app.cli.command('update-db')
     def update_db_command():
         """Update database schema without clearing data."""
