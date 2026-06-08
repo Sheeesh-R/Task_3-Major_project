@@ -11,21 +11,28 @@
                     <h2 class="mb-0 fw-bold" style="color: white !important;"><i class="fas fa-calculator me-2"></i>How ATAR is Calculated</h2>
                 </div>
                 <div class="card-body">
-                    
+
                     <!-- Overview -->
                     <div class="mb-5">
                         <h4 class="fw-bold mb-3" style="color: var(--primary);">Overview</h4>
-                        <p class="lead">The Australian Tertiary Admission Rank (ATAR) is a percentile ranking system used by universities in Australia to select students for undergraduate courses. Our calculator estimates your ATAR using the same methodology as UAC (Universities Admissions Centre).</p>
+                        <p class="lead">The Australian Tertiary Admission Rank (ATAR) is a percentile ranking used by universities to select students for undergraduate courses. Our calculator estimates your ATAR using publicly available UAC scaling data and aggregation rules.</p>
+                        <p class="mb-0">The calculation follows four steps: enter HSC marks → scale each subject → select your best 10 units (English mandatory) → convert the aggregate to an ATAR.</p>
                     </div>
 
-                    <!-- Step 1: Raw HSC Marks -->
+                    <!-- Step 1: HSC Marks -->
                     <div class="mb-5">
-                        <h4 class="fw-bold mb-3" style="color: var(--success);"><i class="fas fa-1 me-2"></i>Step 1: Raw HSC Marks</h4>
+                        <h4 class="fw-bold mb-3" style="color: var(--success);"><i class="fas fa-1 me-2"></i>Step 1: HSC Marks</h4>
                         <div class="card" style="border-color: var(--success);">
                             <div class="card-body">
-                                <p><strong>Input:</strong> Your raw HSC marks for each subject (0-100 for standard subjects, 0-50 for extensions)</p>
-                                <p><strong>Validation:</strong> We check that marks are within valid ranges for each subject type</p>
-                                <p><strong>Example:</strong> English Advanced: 85/100, Mathematics Extension 1: 35/50</p>
+                                <p><strong>Input:</strong> The HSC mark NESA reports to you (0–100 for standard subjects; 0–50 for most extension subjects).</p>
+                                <p><strong>Extension subjects marked out of 50:</strong></p>
+                                <ul>
+                                    {% for subject in extension_out_of_50 %}
+                                    <li>{{ subject }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <p><strong>Normalisation:</strong> Extension marks out of 50 are converted to the 0–100 scale used by scaling tables before scaling (e.g. 35/50 → 70).</p>
+                                <p class="mb-0"><strong>Example:</strong> English Advanced: 85/100, Mathematics Extension 1: 35/50</p>
                             </div>
                         </div>
                     </div>
@@ -35,123 +42,85 @@
                         <h4 class="fw-bold mb-3" style="color: var(--info);"><i class="fas fa-2 me-2"></i>Step 2: Subject Scaling</h4>
                         <div class="card" style="border-color: var(--info);">
                             <div class="card-body">
-                                <p><strong>What is Scaling?</strong> Different subjects have different levels of difficulty. UAC applies scaling to make marks comparable across subjects.</p>
-                                <p><strong>Our Method:</strong> We use polynomial regression models trained on real UAC scaling data to convert raw marks to scaled marks.</p>
-                                
-                                <h6 class="mt-3">Scaling Examples:</h6>
+                                <p><strong>What is scaling?</strong> UAC adjusts marks so performance can be compared across subjects of different difficulty.</p>
+                                <p><strong>Our method:</strong> Piecewise linear interpolation between published (HSC mark, scaled mark) pairs from <strong>hscscalinggraphs.au</strong> and <strong>matrix.edu.au</strong>, covering {{ subject_count }} subjects.</p>
+                                <p>Every published data point is matched exactly; values between points are linearly interpolated.</p>
+
+                                <h6 class="mt-3">Scaling examples at HSC 85:</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>Subject</th>
-                                                <th>Raw 85</th>
-                                                <th>Scaled</th>
-                                                <th>Scaling Factor</th>
+                                                <th>HSC Mark</th>
+                                                <th>Scaled Mark</th>
+                                                <th>Relative to raw</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            {% for row in scaling_examples %}
                                             <tr>
-                                                <td>Mathematics Advanced</td>
-                                                <td>85/100</td>
-                                                <td>72.9%</td>
-                                                <td>0.86×</td>
+                                                <td>{{ row.subject }}</td>
+                                                <td>{{ row.hsc_display }}</td>
+                                                <td>{{ "%.1f"|format(row.scaled) }}</td>
+                                                <td>{{ "%.2f"|format(row.scaled / 85) }}×</td>
                                             </tr>
-                                            <tr>
-                                                <td>Physics</td>
-                                                <td>85/100</td>
-                                                <td>79.1%</td>
-                                                <td>0.93×</td>
-                                            </tr>
-                                            <tr>
-                                                <td>English Standard</td>
-                                                <td>85/100</td>
-                                                <td>74.1%</td>
-                                                <td>0.87×</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Design & Technology</td>
-                                                <td>85/100</td>
-                                                <td>62.6%</td>
-                                                <td>0.74×</td>
-                                            </tr>
+                                            {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
-                                
-                                <div class="alert alert-info mt-3">
+
+                                <div class="alert alert-info mt-3 mb-0">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <strong>Note:</strong> Scaling factors vary by mark level. Higher marks often scale differently than lower marks.
+                                    <strong>Note:</strong> Scaling varies across the mark range. A subject that scales up at HSC 75 may behave differently at HSC 90.
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: Aggregate Calculation -->
+                    <!-- Step 3: Aggregate -->
                     <div class="mb-5">
                         <h4 class="fw-bold mb-3" style="color: var(--warning);"><i class="fas fa-3 me-2"></i>Step 3: Aggregate Score</h4>
                         <div class="card" style="border-color: var(--warning);">
                             <div class="card-body">
-                                <p><strong>What is Aggregate?</strong> Your ATAR aggregate is the sum of your best 10 units of scaled marks.</p>
-                                
-                                <h6 class="mt-3">Aggregate Rules:</h6>
+                                <p><strong>What is the aggregate?</strong> The sum of scaled marks from your best 10 units.</p>
+
+                                <h6 class="mt-3">Aggregation rules:</h6>
                                 <ul>
-                                    <li><strong>Must include:</strong> At least 2 units of English (any level)</li>
-                                    <li><strong>Maximum:</strong> 10 units total (typically 5 subjects)</li>
-                                    <li><strong>Best units:</strong> We select your highest-scoring units</li>
-                                    <p><strong>Maximum possible:</strong> 500.0 (10 units × 50.0 per unit)</p>
+                                    <li><strong>English mandatory:</strong> At least 2 units of English must be included when available</li>
+                                    <li><strong>Best 10 units:</strong> Remaining places filled by highest scaled units</li>
+                                    <li><strong>Unit counts:</strong> Extension subjects count as 1 unit; standard subjects count as 2 units</li>
+                                    <li><strong>Maximum possible aggregate:</strong> 1000.0 (10 units × 100.0 scaled mark per unit)</li>
                                 </ul>
-                                
-                                <h6 class="mt-3">Example Calculation:</h6>
+
+                                <h6 class="mt-3">Worked example (10 units):</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>Subject</th>
+                                                <th>HSC Mark</th>
                                                 <th>Units</th>
-                                                <th>Scaled Mark (per unit)</th>
+                                                <th>Scaled / unit</th>
                                                 <th>Contribution</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            {% for subject in aggregate_example.subject_results %}
                                             <tr>
-                                                <td>English Advanced</td>
-                                                <td>2</td>
-                                                <td>21.45/50</td>
-                                                <td>42.9</td>
+                                                <td>{{ subject.subject_name }}</td>
+                                                <td>
+                                                    {{ subject.hsc_mark }}
+                                                    {% if subject.subject_name in extension_out_of_50 %}/50{% else %}/100{% endif %}
+                                                </td>
+                                                <td>{{ subject.units }}</td>
+                                                <td>{{ "%.1f"|format(subject.scaled_mark) }}</td>
+                                                <td>{{ "%.1f"|format(subject.scaled_mark * subject.units) }}</td>
                                             </tr>
-                                            <tr>
-                                                <td>Mathematics Extension 1</td>
-                                                <td>1</td>
-                                                <td>23.25/50</td>
-                                                <td>23.3</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Mathematics Extension 2</td>
-                                                <td>2</td>
-                                                <td>23.90/50</td>
-                                                <td>47.8</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Physics</td>
-                                                <td>2</td>
-                                                <td>24.05/50</td>
-                                                <td>48.1</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Chemistry</td>
-                                                <td>2</td>
-                                                <td>23.65/50</td>
-                                                <td>47.3</td>
-                                            </tr>
-                                            <tr>
-                                                <td>English Extension 1</td>
-                                                <td>1</td>
-                                                <td>23.40/50</td>
-                                                <td>23.4</td>
-                                            </tr>
+                                            {% endfor %}
                                             <tr style="background: var(--warning);">
-                                                <th colspan="3">Total Aggregate (10 units):</th>
-                                                <th>232.8</th>
+                                                <th colspan="4">Total aggregate ({{ aggregate_example.units_counted }} units):</th>
+                                                <th>{{ aggregate_example.aggregate }}</th>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -165,197 +134,97 @@
                         <h4 class="fw-bold mb-3" style="color: var(--danger);"><i class="fas fa-4 me-2"></i>Step 4: ATAR Conversion</h4>
                         <div class="card" style="border-color: var(--danger);">
                             <div class="card-body">
-                                <p><strong>Final Step:</strong> Convert your aggregate score to an ATAR using UAC's published conversion table.</p>
-                                
-                                <h6 class="mt-3">ATAR Conversion Examples:</h6>
+                                <p><strong>Final step:</strong> Map the aggregate score to an ATAR using UAC's published conversion table with linear interpolation between breakpoints.</p>
+                                <p><strong>Rounding:</strong> The estimated ATAR is rounded to the nearest <strong>0.05</strong>, matching UAC reporting (e.g. 90.00, 79.95).</p>
+
+                                <h6 class="mt-3">ATAR conversion examples:</h6>
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>Aggregate Score</th>
-                                                <th>ATAR Range</th>
-                                                <th>Percentile</th>
+                                                <th>Estimated ATAR</th>
+                                                <th>Approximate percentile</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            {% for row in conversion_examples %}
                                             <tr>
-                                                <td>500.0</td>
-                                                <td>99.95</td>
-                                                <td>Top 0.05%</td>
+                                                <td>{{ "%.1f"|format(row.aggregate) }}</td>
+                                                <td>{{ "%.2f"|format(row.atar) }}</td>
+                                                <td>{{ row.percentile }}</td>
                                             </tr>
-                                            <tr>
-                                                <td>450.0</td>
-                                                <td>98.00</td>
-                                                <td>Top 2%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>400.0</td>
-                                                <td>94.00</td>
-                                                <td>Top 6%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>350.0</td>
-                                                <td>87.00</td>
-                                                <td>Top 13%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>300.0</td>
-                                                <td>77.00</td>
-                                                <td>Top 23%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>250.0</td>
-                                                <td>64.00</td>
-                                                <td>Top 36%</td>
-                                            </tr>
+                                            {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
-                                
-                                <div class="alert alert-warning mt-3">
+
+                                <div class="alert alert-warning mt-3 mb-0">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Important:</strong> ATAR conversion uses linear interpolation between these breakpoints for precise calculations.
+                                    <strong>Important:</strong> Values between table breakpoints are calculated by linear interpolation, then rounded to 0.05.
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Subject Scaling Examples -->
+                    <!-- Subject Scaling Charts -->
                     <div class="mb-5">
-                        <h4 class="fw-bold text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Subject Scaling Examples</h4>
+                        <h4 class="fw-bold text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Subject Scaling Curves</h4>
                         <div class="card border-primary">
                             <div class="card-body">
-                                <p><strong>How Different Subjects Scale:</strong> These examples show how raw HSC marks convert to scaled marks per unit.</p>
-                                
+                                <p>Charts below use the same scaling logic as the calculator. Curves are sampled densely (especially at low HSC marks); dots mark published data anchors.</p>
+
                                 <div class="row">
+                                    {% for chart_id, chart in chart_payload.items() %}
                                     <div class="col-md-6 mb-4">
-                                        <h6 class="text-center">English Advanced</h6>
+                                        <h6 class="text-center">{{ chart.subject }}</h6>
                                         <div style="height: 250px; position: relative;">
-                                            <canvas id="englishChart"></canvas>
+                                            <canvas id="{{ chart_id }}"></canvas>
                                         </div>
-                                        <p class="small text-muted text-center">Raw 85 → Scaled ~21/50 per unit</p>
+                                        <p class="small text-muted text-center">HSC 85 → scaled {{ "%.1f"|format(chart.scaled_at_85) }}</p>
                                     </div>
-                                    <div class="col-md-6 mb-4">
-                                        <h6 class="text-center">Mathematics Advanced</h6>
-                                        <div style="height: 250px; position: relative;">
-                                            <canvas id="mathChart"></canvas>
-                                        </div>
-                                        <p class="small text-muted text-center">Raw 85 → Scaled ~23/50 per unit</p>
-                                    </div>
+                                    {% endfor %}
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6 mb-4">
-                                        <h6 class="text-center">Physics</h6>
-                                        <div style="height: 250px; position: relative;">
-                                            <canvas id="physicsChart"></canvas>
-                                        </div>
-                                        <p class="small text-muted text-center">Raw 85 → Scaled ~24/50 per unit</p>
-                                    </div>
-                                    <div class="col-md-6 mb-4">
-                                        <h6 class="text-center">Design & Technology</h6>
-                                        <div style="height: 250px; position: relative;">
-                                            <canvas id="designChart"></canvas>
-                                        </div>
-                                        <p class="small text-muted text-center">Raw 85 → Scaled ~19/50 per unit</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="alert alert-info mt-3">
+
+                                <div class="alert alert-info mt-3 mb-0">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <strong>Key Point:</strong> STEM subjects like Physics and Maths generally scale better than practical subjects. Raw marks are converted to scaled marks per unit (0-50).
+                                    <strong>Key point:</strong> STEM subjects such as Physics and Mathematics Advanced generally scale more favourably than many practical or arts subjects, but the curve shape differs for every subject.
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    
-                    
                     <!-- Technical Details -->
                     <div class="mb-5">
                         <h4 class="fw-bold text-secondary mb-3"><i class="fas fa-cog me-2"></i>Technical Details</h4>
                         <div class="card border-secondary">
                             <div class="card-body">
-                                <h6>Polynomial Regression Models:</h6>
-                                <p>We use degree-4 polynomial regression trained on UAC scaling data for each subject. This provides more accurate scaling than simple linear interpolation.</p>
-                                
-                                <h6>Machine Learning Implementation:</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Library</th>
-                                                <th>Usage</th>
-                                                <th>Purpose</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><strong>scikit-learn</strong></td>
-                                                <td><code>PolynomialFeatures</code></td>
-                                                <td>Creates polynomial features for regression (degree 4)</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>scikit-learn</strong></td>
-                                                <td><code>LinearRegression</code></td>
-                                                <td>Fits polynomial model to scaling data points</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>scikit-learn</strong></td>
-                                                <td><code>make_pipeline</code></td>
-                                                <td>Combines preprocessing and regression steps</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>numpy</strong></td>
-                                                <td><code>np.array()</code></td>
-                                                <td>Converts scaling data to numpy arrays</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>numpy</strong></td>
-                                                <td><code>np.clip()</code></td>
-                                                <td>Ensures scaled marks stay within 0-100 range</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>numpy</strong></td>
-                                                <td><code>np.reshape()</code></td>
-                                                <td>Prepares data for model input</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                
-                                <h6>Code Implementation Example:</h6>
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <pre><code># Create polynomial features (degree 4)
-poly_features = PolynomialFeatures(degree=4, include_bias=False)
-X_poly = poly_features.fit_transform(X.reshape(-1, 1))
-
-# Fit linear regression model
-model = LinearRegression()
-model.fit(X_poly, y)
-
-# Predict scaled mark for new HSC mark
-new_mark_poly = poly_features.transform([[hsc_mark]])
-predicted_scaled = model.predict(new_mark_poly)[0]
-
-# Ensure result is within valid range
-scaled_mark = np.clip(predicted_scaled, 0, 100)</code></pre>
-                                    </div>
-                                </div>
-                                
-                                <h6>Data Sources:</h6>
+                                <h6>Scaling implementation</h6>
                                 <ul>
-                                    <li><strong>UAC Official Scaling Reports:</strong> Historical scaling data for all HSC subjects</li>
-                                    <li><strong>ATAR Conversion Tables:</strong> Published aggregate-to-ATAR conversion breakpoints</li>
-                                    <li><strong>Subject Difficulty Adjustments:</strong> Account for varying subject difficulty levels</li>
+                                    <li><strong>Data:</strong> hscscalinggraphs.au curve readings (2025) plus matrix.edu.au anchor points at HSC 20 and HSC 75</li>
+                                    <li><strong>Interpolation:</strong> <code>numpy.interp</code> between sorted published pairs</li>
+                                    <li><strong>Below-range marks:</strong> Linear scaling from the origin through the lowest published anchor</li>
+                                    <li><strong>Above-range marks:</strong> Capped at the highest published scaled mark</li>
                                 </ul>
-                                
-                                <h6>Accuracy Considerations:</h6>
+
+                                <h6>ATAR conversion</h6>
                                 <ul>
-                                    <li><strong>Historical Data:</strong> Based on past years' scaling patterns</li>
-                                    <li><strong>Methodology Changes:</strong> UAC may update calculation methods</li>
-                                    <li><strong>Cohort Variations:</strong> Your school's performance may affect scaling</li>
+                                    <li>Linear interpolation across UAC aggregate-to-ATAR breakpoints</li>
+                                    <li>Final ATAR rounded to the nearest 0.05 (maximum 99.95)</li>
+                                </ul>
+
+                                <h6>Data sources</h6>
+                                <ul>
+                                    <li><strong>hscscalinggraphs.au</strong> — HSC mark vs scaled mark curves per subject</li>
+                                    <li><strong>matrix.edu.au</strong> — Exact anchor pairs across mark levels</li>
+                                    <li><strong>UAC published tables</strong> — Aggregate-to-ATAR conversion breakpoints</li>
+                                </ul>
+
+                                <h6>Accuracy considerations</h6>
+                                <ul>
+                                    <li>Based on publicly available data; actual UAC methodology is proprietary</li>
+                                    <li>Scaling curves change year to year with cohort performance</li>
+                                    <li>School moderation affects HSC marks before scaling is applied</li>
                                 </ul>
                             </div>
                         </div>
@@ -364,18 +233,17 @@ scaled_mark = np.clip(predicted_scaled, 0, 100)</code></pre>
                     <!-- Limitations -->
                     <div class="mb-4">
                         <div class="alert alert-danger">
-                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Calculator Limitations</h5>
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Calculator limitations</h5>
                             <p class="mb-2">This calculator provides <strong>estimates only</strong> and should not be used for official purposes:</p>
                             <ul class="mb-0">
-                                <li>Does not account for school-specific scaling adjustments</li>
-                                <li>Based on historical data, not current year methodology</li>
-                                <li>Cannot predict assessment performance variations</li>
-                                <li>Official ATAR calculations may use different factors</li>
+                                <li>Does not replicate UAC's proprietary algorithm exactly</li>
+                                <li>Based on published historical data, not the current year's final scaling</li>
+                                <li>Cannot predict moderation or assessment performance changes</li>
+                                <li>Some subjects in the app (e.g. IPT) may not yet have scaling data</li>
                             </ul>
                         </div>
                     </div>
 
-                    <!-- Back to Calculator -->
                     <div class="text-center">
                         <a href="{{ url_for('atar') }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i>
@@ -392,124 +260,118 @@ scaled_mark = np.clip(predicted_scaled, 0, 100)</code></pre>
 {% block scripts %}
 <script>
 window.addEventListener('load', function() {
-    // Simple chart creation
-    function createSimpleChart(canvasId, data, color) {
+    const chartPayload = {{ chart_payload | tojson }};
+
+    function drawSmoothCurve(ctx, points) {
+        if (points.length < 2) return;
+        if (points.length === 2) {
+            ctx.moveTo(points[0].x, points[0].y);
+            ctx.lineTo(points[1].x, points[1].y);
+            return;
+        }
+
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+            const p0 = points[i === 0 ? i : i - 1];
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+        }
+    }
+
+    function createScalingChart(canvasId, curveData, anchorData, color) {
         const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        
+        if (!canvas || !curveData || curveData.length === 0) return;
+
+        const sorted = curveData.slice().sort((a, b) => a.x - b.x);
+        const anchors = (anchorData || []).slice().sort((a, b) => a.x - b.x);
         const ctx = canvas.getContext('2d');
         const width = canvas.width = canvas.offsetWidth;
         const height = canvas.height = 250;
-        
-        // Clear canvas
+        const padLeft = 45;
+        const padRight = 20;
+        const padTop = 20;
+        const padBottom = 35;
+        const plotW = width - padLeft - padRight;
+        const plotH = height - padTop - padBottom;
+        const maxX = 100;
+        const maxY = 100;
+
         ctx.clearRect(0, 0, width, height);
-        
-        // Draw axes
+
         ctx.strokeStyle = '#ddd';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(40, height - 30);
-        ctx.lineTo(width - 20, height - 30);
-        ctx.moveTo(40, height - 30);
-        ctx.lineTo(40, 20);
+        ctx.moveTo(padLeft, height - padBottom);
+        ctx.lineTo(width - padRight, height - padBottom);
+        ctx.moveTo(padLeft, height - padBottom);
+        ctx.lineTo(padLeft, padTop);
         ctx.stroke();
-        
-        // Draw smooth curve
+
+        const toCanvas = (point) => ({
+            x: padLeft + (point.x / maxX) * plotW,
+            y: height - padBottom - (point.y / maxY) * plotH,
+        });
+
+        const curvePoints = sorted.map(toCanvas);
+        const anchorPoints = anchors.map(toCanvas);
+
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        
-        // Calculate positions for all points
-        const points = data.map((point, index) => ({
-            x: 40 + (index / (data.length - 1)) * (width - 60),
-            y: height - 30 - (point.y / 50) * (height - 50)
-        }));
-        
-        // Draw smooth curve through points
-        if (points.length > 2) {
-            // Move to first point
-            ctx.moveTo(points[0].x, points[0].y);
-            
-            // Draw smooth curves using quadratic curves
-            for (let i = 1; i < points.length - 1; i++) {
-                const xc = (points[i].x + points[i + 1].x) / 2;
-                const yc = (points[i].y + points[i + 1].y) / 2;
-                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-            }
-            
-            // Curve to last point
-            ctx.quadraticCurveTo(
-                points[points.length - 2].x, 
-                points[points.length - 2].y, 
-                points[points.length - 1].x, 
-                points[points.length - 1].y
-            );
-        } else {
-            // Fallback to straight lines if less than 3 points
-            points.forEach((point, index) => {
-                if (index === 0) {
-                    ctx.moveTo(point.x, point.y);
-                } else {
-                    ctx.lineTo(point.x, point.y);
-                }
-            });
-        }
-        
+        drawSmoothCurve(ctx, curvePoints);
         ctx.stroke();
-        
-        // Draw points on top
-        points.forEach(point => {
+
+        anchorPoints.forEach((point) => {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 4.5, 0, 2 * Math.PI);
+            ctx.fill();
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
             ctx.fill();
         });
-        
-        // Labels
+
         ctx.fillStyle = '#666';
         ctx.font = '11px Arial';
-        ctx.fillText('0', 35, height - 15);
-        ctx.fillText('100', width - 35, height - 15);
-        ctx.fillText('50', 25, 25);
-        ctx.fillText('0', 10, height - 25);
-        
-        // Axis labels
+        ctx.fillText('0', padLeft - 8, height - padBottom + 14);
+        ctx.fillText('100', width - padRight - 12, height - padBottom + 14);
+        ctx.fillText('100', 8, padTop + 4);
+        ctx.fillText('0', 12, height - padBottom + 4);
+        ctx.fillText('HSC mark', width / 2 - 24, height - 6);
+
         ctx.save();
-        ctx.translate(15, height / 2);
+        ctx.translate(14, height / 2);
         ctx.rotate(-Math.PI / 2);
-        ctx.fillText('Scaled Mark', 0, 0);
+        ctx.fillText('Scaled mark', 0, 0);
         ctx.restore();
-        
-        ctx.fillText('Raw HSC Mark', width / 2 - 30, height - 5);
     }
-    
-    // Chart data - realistic gradual scaling to 50 at 100
-    const englishData = [
-        {x: 0, y: 3}, {x: 10, y: 8}, {x: 20, y: 12}, {x: 30, y: 16}, {x: 40, y: 19},
-        {x: 50, y: 22}, {x: 60, y: 25}, {x: 70, y: 28}, {x: 80, y: 32}, {x: 90, y: 38}, {x: 100, y: 50}
-    ];
-    
-    const mathData = [
-        {x: 0, y: 5}, {x: 10, y: 11}, {x: 20, y: 16}, {x: 30, y: 20}, {x: 40, y: 24},
-        {x: 50, y: 27}, {x: 60, y: 30}, {x: 70, y: 33}, {x: 80, y: 37}, {x: 90, y: 43}, {x: 100, y: 50}
-    ];
-    
-    const physicsData = [
-        {x: 0, y: 4}, {x: 10, y: 10}, {x: 20, y: 16}, {x: 30, y: 21}, {x: 40, y: 26},
-        {x: 50, y: 30}, {x: 60, y: 34}, {x: 70, y: 37}, {x: 80, y: 40}, {x: 90, y: 45}, {x: 100, y: 50}
-    ];
-    
-    const designData = [
-        {x: 0, y: 2}, {x: 10, y: 4}, {x: 20, y: 7}, {x: 30, y: 10}, {x: 40, y: 13},
-        {x: 50, y: 16}, {x: 60, y: 20}, {x: 70, y: 25}, {x: 80, y: 32}, {x: 90, y: 40}, {x: 100, y: 50}
-    ];
-    
-    // Create charts with delay to ensure DOM is ready
+
+    const colors = {
+        englishChart: '#1a3a5c',
+        mathChart: '#c8972b',
+        physicsChart: '#276749',
+        designChart: '#9b2335',
+    };
+
     setTimeout(function() {
-        createSimpleChart('englishChart', englishData, '#1a3a5c');
-        createSimpleChart('mathChart', mathData, '#c8972b');
-        createSimpleChart('physicsChart', physicsData, '#276749');
-        createSimpleChart('designChart', designData, '#9b2335');
+        Object.keys(chartPayload).forEach(function(chartId) {
+            const chart = chartPayload[chartId];
+            createScalingChart(
+                chartId,
+                chart.curve || [],
+                chart.anchors || [],
+                colors[chartId] || '#1a3a5c'
+            );
+        });
     }, 100);
 });
 </script>

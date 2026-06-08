@@ -33,7 +33,14 @@ from flask import (
     jsonify,
 )
 from .db import get_db, init_app
-from .atar_data import calculate_atar_estimate, SUBJECT_SCALING_POINTS
+from .atar_data import (
+    calculate_atar_estimate,
+    SUBJECT_SCALING_POINTS,
+    get_scaled_mark,
+    generate_chart_curve_points,
+    aggregate_to_atar,
+    round_atar,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from dotenv import load_dotenv
@@ -119,19 +126,43 @@ def create_app() -> Flask:
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='atar_predictions'"
             )
             if cursor.fetchone() is None:
-                # Create atar_predictions table
+                # Create atar_predictions table (including uncertainty fields)
                 db.execute("""
                     CREATE TABLE atar_predictions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         user_id INTEGER NOT NULL,
                         atar_score REAL NOT NULL,
                         aggregate_score REAL NOT NULL,
+                        aggregate_std REAL,
+                        atar_low REAL,
+                        atar_high REAL,
+                        atar_std REAL,
                         prediction_date TEXT NOT NULL,
                         notes TEXT,
                         FOREIGN KEY (user_id) REFERENCES users (id)
                     )
                 """)
                 app.logger.info("Created 'atar_predictions' table")
+            else:
+                # Add any missing columns to existing table from earlier schema versions
+                existing_columns = [
+                    row[1]
+                    for row in db.execute(
+                        "PRAGMA table_info(atar_predictions)"
+                    ).fetchall()
+                ]
+                if "aggregate_std" not in existing_columns:
+                    db.execute("ALTER TABLE atar_predictions ADD COLUMN aggregate_std REAL")
+                    app.logger.info("Added 'aggregate_std' column to atar_predictions")
+                if "atar_low" not in existing_columns:
+                    db.execute("ALTER TABLE atar_predictions ADD COLUMN atar_low REAL")
+                    app.logger.info("Added 'atar_low' column to atar_predictions")
+                if "atar_high" not in existing_columns:
+                    db.execute("ALTER TABLE atar_predictions ADD COLUMN atar_high REAL")
+                    app.logger.info("Added 'atar_high' column to atar_predictions")
+                if "atar_std" not in existing_columns:
+                    db.execute("ALTER TABLE atar_predictions ADD COLUMN atar_std REAL")
+                    app.logger.info("Added 'atar_std' column to atar_predictions")
 
             db.commit()
         except Exception:
@@ -923,6 +954,7 @@ def register_routes(app: Flask) -> None:
 
                 # Collect marks for each subject
                 subject_marks = []
+                mark_values = {}
                 for subject in user_subjects:
                     mark_input = request.form.get(f'mark_{subject["id"]}')
                     if mark_input and mark_input.strip():
@@ -946,6 +978,7 @@ def register_routes(app: Flask) -> None:
                                             ),
                                         }
                                     )
+                                    mark_values[subject["id"]] = mark
                                 else:
                                     flash(
                                         f'Invalid mark for {subject["name"]} (must be 0-50)',
@@ -965,6 +998,7 @@ def register_routes(app: Flask) -> None:
                                             ),
                                         }
                                     )
+                                    mark_values[subject["id"]] = mark
                                 else:
                                     flash(
                                         f'Invalid mark for {subject["name"]} (must be 0-100)',
@@ -987,18 +1021,22 @@ def register_routes(app: Flask) -> None:
                             atar_result.get("subject_results", "NOT FOUND"),
                         )
 
-                        # Save prediction to database
+                        # Save prediction to database (including uncertainty fields)
                         db.execute(
                             """
                             INSERT INTO atar_predictions
-                            (user_id, prediction_date, aggregate_score, atar_score)
-                            VALUES (?, ?, ?, ?)
+                            (user_id, prediction_date, aggregate_score, aggregate_std, atar_low, atar_high, atar_std, atar_score)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                             (
                                 g.user["id"],
                                 datetime.now().isoformat(),
-                                atar_result["aggregate"],
-                                atar_result["atar"],
+                                atar_result.get("aggregate"),
+                                atar_result.get("aggregate_std"),
+                                atar_result.get("atar_low"),
+                                atar_result.get("atar_high"),
+                                atar_result.get("atar_std"),
+                                atar_result.get("atar"),
                             ),
                         )
                         db.commit()
@@ -1009,7 +1047,8 @@ def register_routes(app: Flask) -> None:
                             subjects=user_subjects,
                             estimated_atar=atar_result["atar"],
                             user_subjects=user_subjects,
-                            atar_result=None,
+                            atar_result=atar_result,
+                            mark_values=mark_values,
                         )
 
                     except Exception as calc_error:
@@ -1044,6 +1083,7 @@ def register_routes(app: Flask) -> None:
             estimated_atar=estimated_atar,
             user_subjects=user_subjects,
             available_subjects=list(SUBJECT_SCALING_POINTS.keys()),
+            mark_values={},
         )
 
     # ATAR Calculation Explanation page
@@ -1051,7 +1091,91 @@ def register_routes(app: Flask) -> None:
     @login_required
     def atar_calculation():
         """Explain how ATAR calculations work."""
-        return render_template("atar_calculation.html")
+        scaling_examples = [
+            {
+                "subject": "Mathematics Advanced",
+                "hsc_display": "85/100",
+                "scaled": get_scaled_mark("Mathematics Advanced", 85),
+            },
+            {
+                "subject": "Physics",
+                "hsc_display": "85/100",
+                "scaled": get_scaled_mark("Physics", 85),
+            },
+            {
+                "subject": "English Standard",
+                "hsc_display": "85/100",
+                "scaled": get_scaled_mark("English Standard", 85),
+            },
+            {
+                "subject": "Design & Technology",
+                "hsc_display": "85/100",
+                "scaled": get_scaled_mark("Design & Technology", 85),
+            },
+        ]
+
+        example_subjects = [
+            {"subject_name": "English Advanced", "hsc_mark": 85, "units": 2},
+            {"subject_name": "Mathematics Extension 2", "hsc_mark": 90, "units": 1},
+            {"subject_name": "Physics", "hsc_mark": 88, "units": 2},
+            {"subject_name": "Chemistry", "hsc_mark": 87, "units": 2},
+            {"subject_name": "Mathematics Extension 1", "hsc_mark": 35, "units": 1},
+            {"subject_name": "Economics", "hsc_mark": 82, "units": 2},
+        ]
+        aggregate_example = calculate_atar_estimate(example_subjects)
+
+        conversion_breakpoints = [
+            (500, "Top 0.05%"),
+            (450, "Top 1.5%"),
+            (400, "Top 6.5%"),
+            (350, "Top 18%"),
+            (300, "Top 33%"),
+            (250, "Top 48%"),
+        ]
+        conversion_examples = [
+            {
+                "aggregate": agg,
+                "atar": round_atar(aggregate_to_atar(agg)),
+                "percentile": label,
+            }
+            for agg, label in conversion_breakpoints
+        ]
+
+        chart_subjects = [
+            ("englishChart", "English Advanced"),
+            ("mathChart", "Mathematics Advanced"),
+            ("physicsChart", "Physics"),
+            ("designChart", "Design & Technology"),
+        ]
+        chart_payload = {}
+        for chart_id, subject_name in chart_subjects:
+            chart_payload[chart_id] = {
+                "subject": subject_name,
+                "scaled_at_85": float(get_scaled_mark(subject_name, 85)),
+                "curve": generate_chart_curve_points(subject_name),
+                "anchors": [
+                    {"x": float(hsc), "y": float(scaled)}
+                    for hsc, scaled in SUBJECT_SCALING_POINTS[subject_name]
+                ],
+            }
+
+        extension_out_of_50 = [
+            "English Extension 1",
+            "English Extension 2",
+            "Mathematics Extension 1",
+            "History Extension",
+            "Music Extension",
+        ]
+
+        return render_template(
+            "atar_calculation.html",
+            scaling_examples=scaling_examples,
+            aggregate_example=aggregate_example,
+            conversion_examples=conversion_examples,
+            chart_payload=chart_payload,
+            extension_out_of_50=extension_out_of_50,
+            subject_count=len(SUBJECT_SCALING_POINTS),
+        )
 
     # About page
     @app.route("/about")

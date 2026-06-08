@@ -68,6 +68,10 @@ CREATE TABLE atar_predictions (
     user_id INTEGER NOT NULL,
     atar_score REAL NOT NULL,            -- Calculated ATAR score
     aggregate_score REAL NOT NULL,       -- ATAR aggregate score
+    aggregate_std REAL,                  -- Approximate standard deviation of aggregate
+    atar_low REAL,                       -- ATAR mapped from aggregate - 1 SD
+    atar_high REAL,                      -- ATAR mapped from aggregate + 1 SD
+    atar_std REAL,                       -- Approximate ± ATAR (1 SD) symmetric value
     prediction_date TEXT NOT NULL,       -- When prediction was made
     notes TEXT,                          -- Optional notes about the prediction
     FOREIGN KEY (user_id) REFERENCES users (id)

@@ -15,12 +15,14 @@ from sklearn.pipeline import make_pipeline
 
 _LOGGER = logging.getLogger(__name__)
 
-# New comprehensive ATAR scaling data from NEW_ATAR_CALC.md
+# Scaling data from ATAR_calc.md (hscscalinggraphs.au + matrix.edu.au anchors)
 SUBJECT_SCALING_POINTS = {
     # English subjects
     "English Advanced": [
+        (20, 14.1),
         (64, 44),
         (70, 49),
+        (75, 53.1),
         (77, 55),
         (82, 67),
         (85, 78),
@@ -29,8 +31,10 @@ SUBJECT_SCALING_POINTS = {
         (99, 100),
     ],
     "English Standard": [
+        (20, 8.2),
         (68, 29),
         (73, 40),
+        (75, 51.4),
         (77, 52),
         (80, 63),
         (85, 73),
@@ -39,6 +43,8 @@ SUBJECT_SCALING_POINTS = {
         (98, 99),
     ],
     "English Extension 1": [
+        (20, 17.3),
+        (75, 64.8),
         (82, 64),
         (84, 67),
         (88, 74),
@@ -48,6 +54,8 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "English Extension 2": [
+        (20, 17.9),
+        (75, 67.2),
         (76, 64),
         (83, 73),
         (90, 81),
@@ -59,6 +67,8 @@ SUBJECT_SCALING_POINTS = {
     ],
     # Mathematics subjects
     "Mathematics Extension 2": [
+        (20, 21.6),
+        (40, 43.3),
         (75, 83),
         (85, 89.5),
         (93, 93.5),
@@ -67,7 +77,10 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "Mathematics Extension 1": [
+        (20, 19.4),
+        (50, 48.6),
         (70, 73),
+        (75, 72.9),
         (80, 80),
         (84, 83),
         (92, 89.5),
@@ -76,7 +89,10 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "Mathematics Advanced": [
+        (20, 14.1),
+        (70, 49.3),
         (72, 52),
+        (75, 58.5),
         (80, 66.5),
         (85, 72.5),
         (89, 78),
@@ -84,8 +100,8 @@ SUBJECT_SCALING_POINTS = {
         (96, 95),
         (100, 100),
     ],
-    "General Maths": [(84, 84.15), (90, 91.75), (95, 95.25), (98, 94), (100, 100)],
     "Maths Standard 2": [
+        (20, 8.4),
         (64, 30.5),
         (73, 46.5),
         (75, 50.5),
@@ -97,11 +113,28 @@ SUBJECT_SCALING_POINTS = {
         (98, 94),
     ],
     # Science subjects
-    "Physics": [(64, 48), (75, 64), (84, 78), (90, 86), (95, 94.5), (99, 100)],
-    "Biology": [(66, 36), (75, 53), (84, 70), (88, 80), (95, 90), (99, 100)],
+    "Physics": [
+        (20, 14.3),
+        (64, 48),
+        (75, 64),
+        (84, 78),
+        (90, 86),
+        (95, 94.5),
+        (99, 100),
+    ],
+    "Biology": [
+        (20, 11.9),
+        (66, 36),
+        (75, 57.3),
+        (84, 70),
+        (88, 80),
+        (95, 90),
+        (99, 100),
+    ],
     "Chemistry": [
+        (20, 14.9),
         (68, 51.5),
-        (75, 68),
+        (75, 63.8),
         (80, 74),
         (84, 79.5),
         (90, 87),
@@ -117,6 +150,7 @@ SUBJECT_SCALING_POINTS = {
         (98, 93.5),
     ],
     "Earth & Environmental Science": [
+        (20, 9.8),
         (67, 28),
         (76, 46.5),
         (80, 63),
@@ -125,11 +159,12 @@ SUBJECT_SCALING_POINTS = {
         (95, 86),
         (99, 96),
     ],
-    "Senior Science": [(20, 6.5)],  # Only low-end anchor point available
+    "Senior Science": [(20, 6.5)],
     # Humanities and Social Sciences
     "Business Studies": [
+        (20, 9.3),
         (66, 30.5),
-        (71, 46.5),
+        (75, 46.5),
         (80, 55),
         (85, 65),
         (90, 79.5),
@@ -137,8 +172,10 @@ SUBJECT_SCALING_POINTS = {
         (99, 100),
     ],
     "Economics": [
+        (20, 15.2),
         (66, 33),
         (71, 50),
+        (75, 63.5),
         (80, 66),
         (87, 78),
         (90, 86),
@@ -146,6 +183,7 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "Legal Studies": [
+        (20, 10.4),
         (66, 33),
         (75, 47),
         (80, 52),
@@ -167,6 +205,7 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "Modern History": [
+        (20, 11.3),
         (64, 27.5),
         (68, 34),
         (75, 52),
@@ -179,6 +218,7 @@ SUBJECT_SCALING_POINTS = {
         (99, 100),
     ],
     "Ancient History": [
+        (20, 10.4),
         (64, 27.5),
         (70, 41.5),
         (75, 45),
@@ -190,6 +230,7 @@ SUBJECT_SCALING_POINTS = {
         (99, 97),
     ],
     "Studies of Religion I": [
+        (20, 12.3),
         (70, 41.5),
         (75, 51.5),
         (80, 59.5),
@@ -200,8 +241,10 @@ SUBJECT_SCALING_POINTS = {
         (97, 88.5),
         (99, 97),
     ],
-    "Studies of Religion II": [(20, 11.9)],  # Only low-end anchor point available
+    "Studies of Religion II": [(20, 11.9)],
+    "History Extension": [(20, 17.8), (75, 66.5)],
     "PDHPE": [
+        (20, 9.1),
         (67, 28.5),
         (75, 46),
         (80, 63),
@@ -209,40 +252,27 @@ SUBJECT_SCALING_POINTS = {
         (90, 75),
         (95, 87),
         (97, 96.5),
-        (99, 100),
     ],
     "Society & Culture": [
+        (20, 9.1),
         (72, 29.5),
         (75, 46.5),
         (80, 46.5),
         (85, 63),
-        (87, 67.5),
+        (87, 66.5),
         (90, 75.5),
         (95, 89.5),
         (99, 96.5),
         (100, 100),
     ],
     # Arts and Technologies
-    "Drama": [(75, 9.1), (85, 49), (89, 65), (95, 79), (98, 89), (99, 93)],
-    "Music 1": [(75, 28), (85, 49), (89, 65), (95, 79), (98, 89), (99, 93)],
-    "Music 2": [(75, 51.4), (85, 67), (90, 75.5), (95, 89.5), (98, 96), (99, 100)],
-    "Music Extension": [
-        (75, 50.6),
-        (85, 67),
-        (90, 75.5),
-        (95, 89.5),
-        (98, 96),
-        (99, 100),
-    ],
-    "Visual Arts": [
-        (75, 30.7),
-        (85, 62.5),
-        (90, 75.5),
-        (95, 89.5),
-        (98, 96),
-        (99, 100),
-    ],
+    "Drama": [(20, 9.1), (75, 40.7)],
+    "Music 1": [(20, 7.5), (75, 28.0)],
+    "Music 2": [(20, 13.7), (75, 51.4)],
+    "Music Extension": [(20, 13.5), (75, 50.6)],
+    "Visual Arts": [(20, 7.7), (75, 30.7)],
     "Community & Family Studies": [
+        (20, 6.6),
         (67, 19.5),
         (72, 29.5),
         (75, 36),
@@ -254,7 +284,7 @@ SUBJECT_SCALING_POINTS = {
         (100, 100),
     ],
     "Dance": [(79, 30.5), (85, 49), (89, 65), (95, 79), (98, 89), (99, 93)],
-    "Software Design & Development": [
+    "Software Engineering": [
         (69, 38.5),
         (76, 54.5),
         (82, 69.5),
@@ -262,17 +292,9 @@ SUBJECT_SCALING_POINTS = {
         (96, 94),
         (99, 100),
     ],
-    "Textiles & Design": [
-        (65, 19),
-        (69, 35.5),
-        (74, 35.5),
-        (82, 54.5),
-        (89, 71.5),
-        (95, 86),
-        (98, 91.5),
-        (99, 100),
-    ],
+    "Textiles & Design": [(20, 8.3)],
     "Engineering Studies": [
+        (20, 11.1),
         (67, 37.5),
         (71, 44.5),
         (75, 53),
@@ -282,6 +304,7 @@ SUBJECT_SCALING_POINTS = {
         (100, 99.5),
     ],
     "Industrial Technology": [
+        (20, 5.6),
         (63, 18.5),
         (71, 33.5),
         (79, 51),
@@ -303,6 +326,7 @@ SUBJECT_SCALING_POINTS = {
         (99, 100),
     ],
     "Design & Technology": [
+        (20, 7.9),
         (78, 30),
         (80, 45.5),
         (85, 62),
@@ -311,11 +335,28 @@ SUBJECT_SCALING_POINTS = {
         (99, 95.5),
         (100, 100),
     ],
-    "ESL": [(20, 7.6)],  # Only low-end anchor point available
+    "ESL": [(20, 7.6)],
+}
+
+# Map UI / NESA subject names to scaling-data keys
+SUBJECT_ALIASES = {
+    "Earth and Environmental Science": "Earth & Environmental Science",
+    "Society and Culture": "Society & Culture",
+    "Community and Family Studies": "Community & Family Studies",
+    "Design and Technology": "Design & Technology",
+    "Textiles and Design": "Textiles & Design",
+    "General Maths": "Maths Standard 2",
+    "English EAL/D": "ESL",
+    "Software Design & Development": "Software Engineering",
 }
 
 # Cache for polynomial models to avoid retraining
 _POLYNOMIAL_MODELS = {}
+
+
+def resolve_subject_name(subject_name: str) -> str:
+    """Map UI/NESA subject names to SUBJECT_SCALING_POINTS keys."""
+    return SUBJECT_ALIASES.get(subject_name, subject_name)
 
 
 def get_polynomial_model(subject_name: str) -> Optional[Any]:
@@ -327,6 +368,7 @@ def get_polynomial_model(subject_name: str) -> Optional[Any]:
     Returns:
         A scikit-learn pipeline model or ``None`` if the subject is unknown.
     """
+    subject_name = resolve_subject_name(subject_name)
     if subject_name not in SUBJECT_SCALING_POINTS:
         return None
 
@@ -336,12 +378,19 @@ def get_polynomial_model(subject_name: str) -> Optional[Any]:
 
     # Get scaling data for this subject
     data_points = SUBJECT_SCALING_POINTS[subject_name]
+    n = len(data_points)
 
-    # Determine polynomial degree based on data availability
-    if len(data_points) >= 8:
-        degree = 4  # Use degree 4 for subjects with good data coverage
+    # Single-point subjects use linear fallback in get_scaled_mark
+    if n == 1:
+        return None
+
+    # Degree selection per ATAR_calc.md
+    if n >= 8:
+        degree = 4
+    elif n == 2:
+        degree = 1
     else:
-        degree = 2  # Use degree 2 for subjects with limited data to avoid overfitting
+        degree = min(3, n - 1)
 
     # Create polynomial features and fit model
     X = np.array([point[0] for point in data_points]).reshape(-1, 1)
@@ -358,6 +407,27 @@ def get_polynomial_model(subject_name: str) -> Optional[Any]:
     return model
 
 
+def is_extension_out_of_50(subject_name: str) -> bool:
+    """Return True for extension subjects whose raw marks are entered out of 50."""
+    return (
+        "Extension" in subject_name
+        and subject_name != "Mathematics Extension 2"
+    )
+
+
+def normalize_hsc_mark_for_scaling(subject_name: str, hsc_mark: float) -> float:
+    """Convert user-entered marks to the 0-100 scale used by scaling data."""
+    if is_extension_out_of_50(subject_name):
+        return hsc_mark * 2
+    return hsc_mark
+
+
+def round_atar(atar: float) -> float:
+    """Round ATAR to the nearest 0.05 (UAC reporting increment)."""
+    atar = max(0.0, min(99.95, atar))
+    return round(atar * 20) / 20
+
+
 def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
     """Convert an HSC mark to a scaled mark for a specific subject.
 
@@ -367,31 +437,61 @@ def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
 
     Args:
         subject_name: Name of the subject as found in SUBJECT_SCALING_POINTS.
-        hsc_mark: Raw HSC mark (typically 0-100 or 0-50 for some extension
-            subjects).
+        hsc_mark: Raw HSC mark on the 0-100 scale used by scaling data
+            (extension marks out of 50 should be normalised before calling).
 
     Returns:
         Scaled mark as a float between 0 and 100.
     """
-
-    model = get_polynomial_model(subject_name)
-    if model is None:
+    subject_name = resolve_subject_name(subject_name)
+    if subject_name not in SUBJECT_SCALING_POINTS:
         return float(np.clip(hsc_mark, 0, 100))
 
-    data_points = SUBJECT_SCALING_POINTS[subject_name]
-    min_mark = min(point[0] for point in data_points)
-    max_mark = max(point[0] for point in data_points)
+    data_points = sorted(SUBJECT_SCALING_POINTS[subject_name], key=lambda p: p[0])
+    xs = [point[0] for point in data_points]
+    ys = [point[1] for point in data_points]
+    min_mark, min_scaled = data_points[0]
+    max_mark, max_scaled = data_points[-1]
 
-    # If the input is below the available data, perform a linear scaling
-    if hsc_mark < min_mark:
-        min_scaled = min(point[1] for point in data_points)
-        scaled_mark = (hsc_mark / min_mark) * min_scaled
-        return float(np.clip(scaled_mark, 0, 100))
+    if hsc_mark <= min_mark:
+        if min_mark > 0:
+            scaled_mark = (hsc_mark / min_mark) * min_scaled
+        else:
+            scaled_mark = 0.0
+    elif hsc_mark >= max_mark:
+        scaled_mark = max_scaled
+    else:
+        scaled_mark = float(np.interp(hsc_mark, xs, ys))
 
-    # Clamp and predict using the polynomial model
-    clamped_mark = float(np.clip(hsc_mark, min_mark, max_mark))
-    predicted = model.predict([[clamped_mark]])[0]
-    return float(np.clip(predicted, 0, 100))
+    return float(np.clip(scaled_mark, 0, 100))
+
+
+def generate_chart_curve_points(subject_name: str) -> list[dict[str, float]]:
+    """Return dense HSC→scaled samples for smooth chart curves.
+
+    Uses finer steps at low HSC marks where published anchors are sparse.
+    """
+    subject_name = resolve_subject_name(subject_name)
+    hsc_marks: list[float] = []
+    mark = 0.0
+    while mark <= 100:
+        hsc_marks.append(round(mark, 1))
+        if mark < 20:
+            mark += 0.5
+        elif mark < 50:
+            mark += 1
+        elif mark < 75:
+            mark += 2
+        else:
+            mark += 5
+
+    if hsc_marks[-1] != 100:
+        hsc_marks.append(100.0)
+
+    return [
+        {"x": hsc, "y": round(get_scaled_mark(subject_name, hsc), 2)}
+        for hsc in hsc_marks
+    ]
 
 
 def aggregate_to_atar(aggregate: float) -> float:
@@ -400,33 +500,41 @@ def aggregate_to_atar(aggregate: float) -> float:
 
     Based on UAC published conversion table.
     """
-    # UAC conversion breakpoints (aggregate, ATAR) - Updated 2023 data
+    # UAC conversion breakpoints (aggregate, ATAR) — ATAR_calc.md
     conversion_points = [
         (500, 99.95),
+        (490, 99.70),
         (480, 99.50),
+        (470, 99.20),
         (460, 99.00),
+        (450, 98.50),
         (440, 98.00),
-        (420, 96.50),
-        (400, 94.50),
-        (380, 91.50),
-        (360, 87.50),
-        (340, 82.50),
-        (320, 76.50),
-        (300, 70.00),
-        (280, 63.00),
-        (260, 56.00),
-        (240, 49.50),
-        (220, 43.50),
-        (200, 38.00),
-        (180, 33.00),
-        (160, 28.50),
-        (140, 24.50),
-        (120, 21.00),
-        (100, 18.00),
-        (80, 15.50),
-        (60, 13.50),
-        (40, 12.00),
-        (20, 11.00),
+        (430, 97.00),
+        (420, 96.00),
+        (410, 95.00),
+        (400, 93.50),
+        (390, 92.00),
+        (380, 90.00),
+        (370, 88.00),
+        (360, 85.00),
+        (350, 82.00),
+        (340, 79.00),
+        (330, 76.00),
+        (320, 73.00),
+        (310, 70.00),
+        (300, 67.00),
+        (280, 61.00),
+        (260, 55.00),
+        (240, 49.00),
+        (220, 43.00),
+        (200, 37.00),
+        (180, 32.00),
+        (160, 27.00),
+        (140, 22.00),
+        (120, 17.00),
+        (100, 12.00),
+        (80, 8.00),
+        (60, 4.00),
         (0, 0.00),
     ]
 
@@ -477,8 +585,9 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
         hsc_mark = subject["hsc_mark"]
         units = subject.get("units", 2)
 
-        scaled_mark = get_scaled_mark(subject_name, hsc_mark)
-        contribution = scaled_mark * units
+        scaling_mark = normalize_hsc_mark_for_scaling(subject_name, hsc_mark)
+        scaled_mark = get_scaled_mark(subject_name, scaling_mark)
+        contribution = scaled_mark
 
         subject_results.append(
             {
@@ -490,50 +599,66 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
             }
         )
 
-    # Sort subjects by contribution (scaled_mark * units) descending
-    subject_results.sort(key=lambda x: x["contribution"], reverse=True)
-
-    # Select best units (mandatory English + best remaining)
-    selected_units = []
-    english_counted = False
-    aggregate_score = 0.0
-    units_counted = 0
-
-    # First, include best English subject (mandatory). Use contribution to pick best.
-    english_subjects = [s for s in subject_results if "English" in s["subject_name"]]
-    if english_subjects:
-        best_english = max(english_subjects, key=lambda x: x["contribution"])
-        # Ensure English counts at least 2 units (defensive)
-        if best_english["units"] < 2:
-            best_english["units"] = 2
-            best_english["contribution"] = (
-                best_english["scaled_mark"] * best_english["units"]
+    # Expand subjects into individual units
+    # Each unit gets the same scaled mark as the subject
+    unit_list = []
+    for subject in subject_results:
+        units_count = subject["units"]
+        for _ in range(units_count):
+            unit_list.append(
+                {
+                    "subject_name": subject["subject_name"],
+                    "hsc_mark": subject["hsc_mark"],
+                    "scaled_mark": subject["scaled_mark"],
+                    "is_english": "English" in subject["subject_name"],
+                }
             )
 
-        selected_units.append(best_english)
-        aggregate_score += best_english["contribution"]
-        units_counted += best_english["units"]
-        english_counted = True
+    # Sort all units by scaled mark descending
+    unit_list.sort(key=lambda x: x["scaled_mark"], reverse=True)
 
-        # Remove used English subject from list
-        subject_results = [s for s in subject_results if s != best_english]
+    # Select top 10 units, ensuring at least 2 English units if available
+    selected_units_list = []
+    english_units = [u for u in unit_list if u["is_english"]]
+    
+    # Ensure at least 2 English units are included
+    english_counted = len(english_units) >= 2
+    if english_counted:
+        selected_units_list.extend(english_units[:2])
+    elif english_units:
+        selected_units_list.extend(english_units)
 
-    # Then add best remaining units until we reach 10 units total
-    for subject in subject_results:
-        if units_counted >= 10:
-            break
+    # Add remaining best units to reach 10
+    remaining_units = [u for u in unit_list if u not in selected_units_list]
+    remaining_needed = 10 - len(selected_units_list)
+    selected_units_list.extend(remaining_units[:remaining_needed])
 
-        # Check if adding this subject would exceed 10 units
-        if units_counted + subject["units"] <= 10:
-            selected_units.append(subject)
-            aggregate_score += subject["contribution"]
-            units_counted += subject["units"]
+    # Calculate aggregate score from selected units
+    aggregate_score = sum(u["scaled_mark"] for u in selected_units_list)
+    units_counted = len(selected_units_list)
+
+    # Reconstruct subject_results for display (group units by subject)
+    # This shows which subjects contributed and how many units
+    selected_by_subject = {}
+    for unit in selected_units_list:
+        subj_name = unit["subject_name"]
+        if subj_name not in selected_by_subject:
+            selected_by_subject[subj_name] = {
+                "subject_name": subj_name,
+                "hsc_mark": unit["hsc_mark"],
+                "scaled_mark": unit["scaled_mark"],
+                "units": 0,
+                "contribution": unit["scaled_mark"],
+            }
+        selected_by_subject[subj_name]["units"] += 1
+
+    selected_units = list(selected_by_subject.values())
 
     # Convert aggregate to ATAR
     atar_score = aggregate_to_atar(aggregate_score)
 
     return {
-        "atar": round(atar_score, 2),
+        "atar": round_atar(atar_score),
         "aggregate": round(aggregate_score, 1),
         "subject_results": selected_units,
         "units_counted": units_counted,

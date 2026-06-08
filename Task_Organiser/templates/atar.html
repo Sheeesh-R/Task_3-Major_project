@@ -29,7 +29,7 @@
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
                                     <input type="number" class="form-control" id="mark_{{ subject.id }}" 
-                                           name="mark_{{ subject.id }}" value="{{ atar_result.subject_results[loop.index0].hsc_mark if atar_result else '' }}" 
+                                           name="mark_{{ subject.id }}" value="{{ mark_values.get(subject.id, '') }}" 
                                            min="0" max="{{ '50' if 'Extension' in subject.name and subject.name != 'Mathematics Extension 2' else '100' }}" step="0.1" placeholder="Enter mark">
                                     <label for="mark_{{ subject.id }}" class="form-label">
                                         <i class="fas fa-book me-1 text-primary"></i>
@@ -67,7 +67,7 @@
                         <div class="d-inline-block text-white rounded-circle p-4 shadow-lg" style="background: var(--success); width: 180px; height: 180px; border: 3px solid var(--accent);">
                             <div class="d-flex flex-column h-100 justify-content-center align-items-center">
                                 <small class="mb-1" style="font-size: 0.9rem;">Estimated ATAR</small>
-                                <h1 class="mb-0 fw-bold text-white" style="font-size: 2.5rem;">{{ "%.1f"|format(estimated_atar) }}</h1>
+                                <h1 class="mb-0 fw-bold text-white" style="font-size: 2.5rem;">{{ "%.2f"|format(estimated_atar) }}</h1>
                             </div>
                         </div>
                     </div>
