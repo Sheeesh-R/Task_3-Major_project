@@ -1194,6 +1194,48 @@ def register_routes(app: Flask) -> None:
 
         return render_template("contact.html")
 
+    @app.route("/task/<int:task_id>/detail", methods=["GET"])
+    @login_required
+    def task_detail(task_id):
+        """Return task details as JSON for modal display."""
+        db = get_db()
+        task = db.execute(
+            """
+            SELECT t.*, c.name as category_name, c.color as category_color, 
+                   s.name as subject_name, s.units as subject_units
+            FROM tasks t
+            LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN subjects s ON t.subject_id = s.id
+            WHERE t.id = ? AND t.user_id = ?
+            """,
+            (task_id, g.user["id"])
+        ).fetchone()
+
+        if task is None:
+            return jsonify({"success": False, "error": "Task not found"})
+
+        task_dict = dict(task)
+        # Format dates for display
+        if task_dict.get("due_date"):
+            try:
+                due_date = datetime.fromisoformat(task_dict["due_date"])
+                task_dict["due_date_formatted"] = due_date.strftime("%A, %B %d, %Y")
+            except:
+                task_dict["due_date_formatted"] = task_dict["due_date"]
+        else:
+            task_dict["due_date_formatted"] = "No due date set"
+
+        if task_dict.get("completed_at"):
+            try:
+                completed_at = datetime.fromisoformat(task_dict["completed_at"])
+                task_dict["completed_at_formatted"] = completed_at.strftime("%A, %B %d, %Y at %I:%M %p")
+            except:
+                task_dict["completed_at_formatted"] = task_dict["completed_at"]
+        else:
+            task_dict["completed_at_formatted"] = None
+
+        return jsonify({"success": True, "task": task_dict})
+
     @app.route("/toggle_task/<int:task_id>", methods=["POST"])
     @login_required
     def toggle_task(task_id):

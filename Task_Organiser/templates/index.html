@@ -1089,7 +1089,7 @@
                     <div class="row g-4 mx-0">
                         {% for task in tasks %}
                         <div class="col-12 px-2">
-                            <div class="card border-0 shadow-sm h-100 expanded-task-card">
+                            <div class="card border-0 shadow-sm h-100 expanded-task-card" data-task-id="{{ task.id }}">
                                 <div class="card-body p-4">
                                     <div class="row">
                                         <!-- Task details (full width now) -->
@@ -2072,6 +2072,218 @@
         }
       });
       
+        </script>
+
+        <!-- Task Detail Modal JavaScript -->
+        <script>
+        // Global variable to store current task ID
+        let currentTaskId = null;
+
+        // Function to open task detail modal
+        function openTaskDetail(taskId) {
+            currentTaskId = taskId;
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            const modalBody = document.getElementById('taskDetailModalBody');
+            const editBtn = document.getElementById('taskDetailEditBtn');
+
+            // Show loading state
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading task details...</p>
+                </div>
+            `;
+
+            // Update edit button href
+            editBtn.href = `/task/${taskId}/edit`;
+
+            // Fetch task details
+            fetch(`/task/${taskId}/detail`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderTaskDetail(data.task);
+                    } else {
+                        modalBody.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-exclamation-triangle text-danger fs-1 mb-3"></i>
+                                <p class="text-muted">${data.error || 'Failed to load task details'}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading task detail:', error);
+                    modalBody.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle text-danger fs-1 mb-3"></i>
+                            <p class="text-muted">Error loading task details. Please try again.</p>
+                        </div>
+                    `;
+                });
+
+            modal.show();
+        }
+
+        // Function to render task details in modal
+        function renderTaskDetail(task) {
+            const modalBody = document.getElementById('taskDetailModalBody');
+            const editBtn = document.getElementById('taskDetailEditBtn');
+
+            // Update modal title
+            document.getElementById('taskDetailModalLabel').textContent = task.title;
+
+            // Update edit button href
+            editBtn.href = `/task/${task.id}/edit`;
+
+            // Format status badge
+            const statusBadges = {
+                'completed': 'success',
+                'in_progress': 'warning',
+                'not_started': 'secondary'
+            };
+            const statusBadgeClass = statusBadges[task.status] || 'secondary';
+            const statusLabel = task.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            // Format priority badge
+            const priorityBadges = {
+                'high': 'danger',
+                'medium': 'warning',
+                'low': 'info'
+            };
+            const priorityBadgeClass = priorityBadges[task.priority] || 'secondary';
+            const priorityLabel = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+
+            // Build category badge
+            let categoryHtml = '';
+            if (task.category_name) {
+                categoryHtml = `
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">Category</small>
+                        <span class="badge rounded-pill px-3 py-2" style="background-color: ${task.category_color || 'var(--primary)'}; color: white;">
+                            <i class="fas fa-tag me-1"></i>${task.category_name}
+                        </span>
+                    </div>
+                `;
+            }
+
+            // Build subject badge
+            let subjectHtml = '';
+            if (task.subject_name) {
+                subjectHtml = `
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">Subject</small>
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            <i class="fas fa-book me-1"></i>${task.subject_name}
+                            ${task.subject_units ? `<span class="ms-1">${task.subject_units}u</span>` : ''}
+                        </span>
+                    </div>
+                `;
+            }
+
+            // Build completed date
+            let completedHtml = '';
+            if (task.status === 'completed' && task.completed_at_formatted) {
+                completedHtml = `
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">Completed</small>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span class="fw-semibold">${task.completed_at_formatted}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <!-- Task Title -->
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-2">${task.title}</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-${statusBadgeClass} rounded-pill px-3 py-2">
+                            <i class="fas fa-${task.status === 'completed' ? 'check' : task.status === 'in_progress' ? 'clock' : 'circle'} me-1"></i>${statusLabel}
+                        </span>
+                        <span class="badge bg-${priorityBadgeClass} rounded-pill px-3 py-2">
+                            <i class="fas fa-flag me-1"></i>${priorityLabel}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                ${task.description ? `
+                <div class="mb-4">
+                    <small class="text-muted d-block mb-2">Description</small>
+                    <div class="p-3 bg-light rounded">
+                        <p class="mb-0">${task.description.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+                ` : `
+                <div class="mb-4">
+                    <small class="text-muted d-block mb-2">Description</small>
+                    <div class="p-3 bg-light rounded">
+                        <p class="mb-0 text-muted fst-italic">No description provided</p>
+                    </div>
+                </div>
+                `}
+
+                <!-- Metadata Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">Due Date</small>
+                        <div class="d-flex align-items-center">
+                            <i class="far fa-calendar text-primary me-2"></i>
+                            <span class="fw-semibold">${task.due_date_formatted}</span>
+                        </div>
+                    </div>
+                    ${completedHtml}
+                    ${subjectHtml}
+                    ${categoryHtml}
+                </div>
+
+                <!-- Quick Actions Info -->
+                <div class="border-top pt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Click "Edit Task" to modify this task, or use the checkbox on the main dashboard to toggle completion status.
+                    </small>
+                </div>
+            `;
+        }
+
+        // Make openTaskDetail available globally
+        window.openTaskDetail = openTaskDetail;
+
+        // Add click handlers to task titles to open modal
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle task title clicks in subject-specific view (expanded cards)
+            document.querySelectorAll('.expanded-task-card .card-title').forEach(title => {
+                title.style.cursor = 'pointer';
+                title.addEventListener('click', function(e) {
+                    // Don't open modal if clicking on edit/delete buttons
+                    if (e.target.closest('.task-actions')) return;
+                    const taskId = this.closest('[data-task-id]')?.getAttribute('data-task-id') ||
+                                   this.closest('.task-item')?.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskDetail(taskId);
+                    }
+                });
+            });
+
+            // Handle task title clicks in regular task list view
+            document.querySelectorAll('.task-item .card-title').forEach(title => {
+                title.style.cursor = 'pointer';
+                title.addEventListener('click', function(e) {
+                    // Don't open modal if clicking on edit/delete buttons
+                    if (e.target.closest('.task-actions')) return;
+                    const taskId = this.closest('.task-item')?.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskDetail(taskId);
+                    }
+                });
+            });
+        });
         </script>
 
 <!-- Add Assessment Modal -->
