@@ -1021,7 +1021,7 @@ def register_routes(app: Flask) -> None:
                             atar_result.get("subject_results", "NOT FOUND"),
                         )
 
-                        # Save prediction to database (including uncertainty fields)
+                        # Save prediction to database (uncertainty fields set to None as they're not currently calculated)
                         db.execute(
                             """
                             INSERT INTO atar_predictions
@@ -1032,10 +1032,10 @@ def register_routes(app: Flask) -> None:
                                 g.user["id"],
                                 datetime.now().isoformat(),
                                 atar_result.get("aggregate"),
-                                atar_result.get("aggregate_std"),
-                                atar_result.get("atar_low"),
-                                atar_result.get("atar_high"),
-                                atar_result.get("atar_std"),
+                                None,  # aggregate_std not currently calculated
+                                None,  # atar_low not currently calculated
+                                None,  # atar_high not currently calculated
+                                None,  # atar_std not currently calculated
                                 atar_result.get("atar"),
                             ),
                         )
@@ -1141,24 +1141,6 @@ def register_routes(app: Flask) -> None:
             for agg, label in conversion_breakpoints
         ]
 
-        chart_subjects = [
-            ("englishChart", "English Advanced"),
-            ("mathChart", "Mathematics Advanced"),
-            ("physicsChart", "Physics"),
-            ("designChart", "Design & Technology"),
-        ]
-        chart_payload = {}
-        for chart_id, subject_name in chart_subjects:
-            chart_payload[chart_id] = {
-                "subject": subject_name,
-                "scaled_at_85": float(get_scaled_mark(subject_name, 85)),
-                "curve": generate_chart_curve_points(subject_name),
-                "anchors": [
-                    {"x": float(hsc), "y": float(scaled)}
-                    for hsc, scaled in SUBJECT_SCALING_POINTS[subject_name]
-                ],
-            }
-
         extension_out_of_50 = [
             "English Extension 1",
             "English Extension 2",
@@ -1172,7 +1154,6 @@ def register_routes(app: Flask) -> None:
             scaling_examples=scaling_examples,
             aggregate_example=aggregate_example,
             conversion_examples=conversion_examples,
-            chart_payload=chart_payload,
             extension_out_of_50=extension_out_of_50,
             subject_count=len(SUBJECT_SCALING_POINTS),
         )

@@ -45,9 +45,9 @@ SUBJECT_SCALING_POINTS = {
     "English Extension 1": [
         (20, 17.3),
         (75, 64.8),
-        (82, 64),
-        (84, 67),
-        (88, 74),
+        (82, 70),
+        (84, 74),
+        (88, 78),
         (92, 82),
         (94, 88),
         (98, 96),
@@ -56,10 +56,10 @@ SUBJECT_SCALING_POINTS = {
     "English Extension 2": [
         (20, 17.9),
         (75, 67.2),
-        (76, 64),
+        (76, 68),
         (83, 73),
         (90, 81),
-        (92, 81),
+        (92, 83),
         (95, 85),
         (96, 88),
         (98, 96),
@@ -80,7 +80,7 @@ SUBJECT_SCALING_POINTS = {
         (20, 19.4),
         (50, 48.6),
         (70, 73),
-        (75, 72.9),
+        (75, 75),
         (80, 80),
         (84, 83),
         (92, 89.5),
@@ -197,7 +197,7 @@ SUBJECT_SCALING_POINTS = {
         (68, 33.5),
         (70, 42),
         (75, 51),
-        (80, 51),
+        (80, 56),
         (85, 65.5),
         (86, 69),
         (90, 81.5),
@@ -257,7 +257,7 @@ SUBJECT_SCALING_POINTS = {
         (20, 9.1),
         (72, 29.5),
         (75, 46.5),
-        (80, 46.5),
+        (80, 52),
         (85, 63),
         (87, 66.5),
         (90, 75.5),
@@ -309,7 +309,7 @@ SUBJECT_SCALING_POINTS = {
         (71, 33.5),
         (79, 51),
         (85, 65.5),
-        (88, 65.5),
+        (88, 68),
         (90, 72.5),
         (95, 79.5),
         (99, 84.5),
@@ -318,7 +318,7 @@ SUBJECT_SCALING_POINTS = {
     "Food Technology": [
         (65, 19),
         (69, 35.5),
-        (74, 35.5),
+        (74, 42),
         (82, 54.5),
         (89, 71.5),
         (95, 86),
@@ -431,9 +431,12 @@ def round_atar(atar: float) -> float:
 def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
     """Convert an HSC mark to a scaled mark for a specific subject.
 
-    The function uses a trained polynomial model where available. Inputs are
-    clamped to the training range to avoid unreasonable extrapolation. The
-    returned value is clipped to the 0-100 range.
+    Uses polynomial regression (degree 4 for subjects with 8+ data points,
+    degree 3 for fewer) trained on published scaling anchor points.
+    For sparse low-end data regions, uses linear interpolation from the first
+    anchor point to the second anchor point to avoid polynomial oscillation.
+    Inputs are clamped to the training range to avoid unreasonable extrapolation.
+    The returned value is clipped to the 0-100 range.
 
     Args:
         subject_name: Name of the subject as found in SUBJECT_SCALING_POINTS.
@@ -447,21 +450,55 @@ def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
     if subject_name not in SUBJECT_SCALING_POINTS:
         return float(np.clip(hsc_mark, 0, 100))
 
+    # Get the polynomial model
+    model = get_polynomial_model(subject_name)
     data_points = sorted(SUBJECT_SCALING_POINTS[subject_name], key=lambda p: p[0])
-    xs = [point[0] for point in data_points]
-    ys = [point[1] for point in data_points]
-    min_mark, min_scaled = data_points[0]
-    max_mark, max_scaled = data_points[-1]
+    min_mark = data_points[0][0]
+    max_mark = data_points[-1][0]
 
-    if hsc_mark <= min_mark:
-        if min_mark > 0:
-            scaled_mark = (hsc_mark / min_mark) * min_scaled
+    # Determine the reliable range for polynomial regression.
+    # For subjects with a gap after the first point, use linear interpolation
+    # up to the second data point, then polynomial regression.
+    poly_min_mark = min_mark
+    if len(data_points) >= 2:
+        # Use polynomial only from the 2nd data point onwards
+        # This avoids oscillation in the sparse region between 1st and 2nd point
+        poly_min_mark = data_points[1][0]
+
+    if model is not None:
+        if hsc_mark < min_mark:
+            # Linear extrapolation below minimum
+            if min_mark > 0:
+                scaled_mark = (hsc_mark / min_mark) * data_points[0][1]
+            else:
+                scaled_mark = 0.0
+        elif hsc_mark > max_mark:
+            # Clamp to maximum
+            scaled_mark = data_points[-1][1]
+        elif hsc_mark < poly_min_mark:
+            # Sparse region: linear interpolation between 1st and 2nd data point
+            x1, y1 = data_points[0]
+            x2, y2 = data_points[1]
+            scaled_mark = y1 + (hsc_mark - x1) * (y2 - y1) / (x2 - x1)
         else:
-            scaled_mark = 0.0
-    elif hsc_mark >= max_mark:
-        scaled_mark = max_scaled
+            # Dense region: use polynomial model
+            scaled_mark = float(model.predict([[hsc_mark]])[0])
     else:
-        scaled_mark = float(np.interp(hsc_mark, xs, ys))
+        # Single-point subjects: use linear interpolation
+        xs = [point[0] for point in data_points]
+        ys = [point[1] for point in data_points]
+        min_mark, min_scaled = data_points[0]
+        max_mark, max_scaled = data_points[-1]
+
+        if hsc_mark <= min_mark:
+            if min_mark > 0:
+                scaled_mark = (hsc_mark / min_mark) * min_scaled
+            else:
+                scaled_mark = 0.0
+        elif hsc_mark >= max_mark:
+            scaled_mark = max_scaled
+        else:
+            scaled_mark = float(np.interp(hsc_mark, xs, ys))
 
     return float(np.clip(scaled_mark, 0, 100))
 
@@ -469,25 +506,40 @@ def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
 def generate_chart_curve_points(subject_name: str) -> list[dict[str, float]]:
     """Return dense HSC→scaled samples for smooth chart curves.
 
-    Uses finer steps at low HSC marks where published anchors are sparse.
+    Uses the actual scaling function (hybrid linear + polynomial) to match
+    calculator behavior exactly.
     """
     subject_name = resolve_subject_name(subject_name)
-    hsc_marks: list[float] = []
-    mark = 0.0
-    while mark <= 100:
-        hsc_marks.append(round(mark, 1))
-        if mark < 20:
-            mark += 0.5
-        elif mark < 50:
-            mark += 1
-        elif mark < 75:
-            mark += 2
-        else:
-            mark += 5
+    
+    # Use consistent small step size for smooth curves (0.5 increments = 201 points)
+    hsc_marks = [round(i * 0.5, 1) for i in range(0, 201)]  # 0 to 100 in 0.5 increments
 
-    if hsc_marks[-1] != 100:
-        hsc_marks.append(100.0)
+    return [
+        {"x": hsc, "y": round(get_scaled_mark(subject_name, hsc), 2)}
+        for hsc in hsc_marks
+    ]
 
+
+def generate_polynomial_curve_points(subject_name: str) -> list[dict[str, float]]:
+    """Return dense HSC→scaled samples showing a smooth polynomial regression curve.
+
+    Uses the actual scaling function (hybrid linear + polynomial) which produces
+    a single smooth continuous line with no sharp turns, matching calculator behavior.
+    """
+    subject_name = resolve_subject_name(subject_name)
+    
+    # Use consistent small step size for smooth curves (0.5 increments = 201 points)
+    hsc_marks = [round(i * 0.5, 1) for i in range(0, 201)]  # 0 to 100 in 0.5 increments
+
+    model = get_polynomial_model(subject_name)
+    if model is None:
+        # Single-point subjects: fallback to linear
+        return [
+            {"x": hsc, "y": round(get_scaled_mark(subject_name, hsc), 2)}
+            for hsc in hsc_marks
+        ]
+
+    # Use the actual scaling function (hybrid linear + polynomial) for smooth curves
     return [
         {"x": hsc, "y": round(get_scaled_mark(subject_name, hsc), 2)}
         for hsc in hsc_marks
@@ -634,7 +686,8 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
     selected_units_list.extend(remaining_units[:remaining_needed])
 
     # Calculate aggregate score from selected units
-    aggregate_score = sum(u["scaled_mark"] for u in selected_units_list)
+    # Scaled marks are out of 100, but each unit contributes out of 50 to the aggregate
+    aggregate_score = sum(u["scaled_mark"] / 2 for u in selected_units_list)
     units_counted = len(selected_units_list)
 
     # Reconstruct subject_results for display (group units by subject)
@@ -648,9 +701,10 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
                 "hsc_mark": unit["hsc_mark"],
                 "scaled_mark": unit["scaled_mark"],
                 "units": 0,
-                "contribution": unit["scaled_mark"],
+                "contribution": 0.0,
             }
         selected_by_subject[subj_name]["units"] += 1
+        selected_by_subject[subj_name]["contribution"] += unit["scaled_mark"] / 2  # Add per-unit contribution
 
     selected_units = list(selected_by_subject.values())
 
