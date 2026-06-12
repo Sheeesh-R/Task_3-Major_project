@@ -1,6 +1,9 @@
 # Web framework
 Flask>=3.0.0
 
+# Database
+Flask-SQLAlchemy>=3.0.0
+
 # Security
 Flask-WTF>=1.2.0
 

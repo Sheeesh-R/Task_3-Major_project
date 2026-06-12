@@ -580,8 +580,8 @@ def generate_polynomial_curve_points(subject_name: str) -> list[dict[str, float]
 def aggregate_to_atar(aggregate: float) -> float:
     """Map an aggregate score to an estimated ATAR via linear interpolation.
 
-    Uses the UAC published conversion table (34 breakpoints from
-    aggregate 0 -> ATAR 0.00 up to aggregate 500 -> ATAR 99.95).
+    Uses the 2024 UAC published conversion table (Table A9) with
+    aggregate 0 -> ATAR 0.00 up to aggregate 500 -> ATAR 99.95.
 
     The aggregate is the sum of the best 10 scaled unit marks divided
     by 2 (each unit contributes a maximum of 50 points).
@@ -592,42 +592,32 @@ def aggregate_to_atar(aggregate: float) -> float:
     Returns:
         Estimated ATAR rounded to the nearest 0.05.
     """
-    # UAC conversion breakpoints (aggregate, ATAR) — ATAR_calc.md
+    # UAC conversion breakpoints (aggregate, ATAR)
+    # 2024 UAC scaling report Table A9 + detailed lookup table
     conversion_points = [
-        (500, 99.95),
-        (490, 99.70),
-        (480, 99.50),
-        (470, 99.20),
-        (460, 99.00),
-        (450, 98.50),
-        (440, 98.00),
-        (430, 97.00),
-        (420, 96.00),
-        (410, 95.00),
-        (400, 93.50),
-        (390, 92.00),
-        (380, 90.00),
-        (370, 88.00),
-        (360, 85.00),
-        (350, 82.00),
-        (340, 79.00),
-        (330, 76.00),
-        (320, 73.00),
-        (310, 70.00),
-        (300, 67.00),
-        (280, 61.00),
-        (260, 55.00),
-        (240, 49.00),
-        (220, 43.00),
-        (200, 37.00),
-        (180, 32.00),
-        (160, 27.00),
-        (140, 22.00),
-        (120, 17.00),
-        (100, 12.00),
-        (80, 8.00),
-        (60, 4.00),
-        (0, 0.00),
+        (0.0, 0.00),
+        (150.0, 47.85),
+        (160.6, 50.00),
+        (185.3, 55.00),
+        (200.0, 58.00),
+        (210.1, 60.00),
+        (235.4, 65.00),
+        (250.0, 67.85),
+        (260.6, 70.00),
+        (286.2, 75.00),
+        (300.0, 77.60),
+        (312.6, 80.00),
+        (340.2, 85.00),
+        (350.0, 86.75),
+        (369.2, 90.00),
+        (400.0, 94.50),
+        (403.5, 95.00),
+        (431.6, 98.00),
+        (445.6, 99.00),
+        (450.0, 99.20),
+        (455.9, 99.50),
+        (477.4, 99.95),
+        (500.0, 99.95),
     ]
 
     conversion_points.sort()
