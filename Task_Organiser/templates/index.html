@@ -2127,12 +2127,20 @@
             modal.show();
         }
 
+        // XSS protection: escape HTML entities in user-controlled strings
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
         // Function to render task details in modal
         function renderTaskDetail(task) {
             const modalBody = document.getElementById('taskDetailModalBody');
             const editBtn = document.getElementById('taskDetailEditBtn');
 
-            // Update modal title
+            // Update modal title (using textContent for safety)
             document.getElementById('taskDetailModalLabel').textContent = task.title;
 
             // Update edit button href
@@ -2156,34 +2164,34 @@
             const priorityBadgeClass = priorityBadges[task.priority] || 'secondary';
             const priorityLabel = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
 
-            // Build category badge
+            // Build category badge (escaped)
             let categoryHtml = '';
             if (task.category_name) {
                 categoryHtml = `
                     <div class="col-md-6">
                         <small class="text-muted d-block mb-1">Category</small>
-                        <span class="badge rounded-pill px-3 py-2" style="background-color: ${task.category_color || 'var(--primary)'}; color: white;">
-                            <i class="fas fa-tag me-1"></i>${task.category_name}
+                        <span class="badge rounded-pill px-3 py-2" style="background-color: ${escapeHtml(task.category_color || 'var(--primary)')}; color: white;">
+                            <i class="fas fa-tag me-1"></i>${escapeHtml(task.category_name)}
                         </span>
                     </div>
                 `;
             }
 
-            // Build subject badge
+            // Build subject badge (escaped)
             let subjectHtml = '';
             if (task.subject_name) {
                 subjectHtml = `
                     <div class="col-md-6">
                         <small class="text-muted d-block mb-1">Subject</small>
                         <span class="badge bg-primary rounded-pill px-3 py-2">
-                            <i class="fas fa-book me-1"></i>${task.subject_name}
-                            ${task.subject_units ? `<span class="ms-1">${task.subject_units}u</span>` : ''}
+                            <i class="fas fa-book me-1"></i>${escapeHtml(task.subject_name)}
+                            ${task.subject_units ? `<span class="ms-1">${escapeHtml(task.subject_units)}u</span>` : ''}
                         </span>
                     </div>
                 `;
             }
 
-            // Build completed date
+            // Build completed date (escaped)
             let completedHtml = '';
             if (task.status === 'completed' && task.completed_at_formatted) {
                 completedHtml = `
@@ -2191,42 +2199,51 @@
                         <small class="text-muted d-block mb-1">Completed</small>
                         <div class="d-flex align-items-center">
                             <i class="fas fa-check-circle text-success me-2"></i>
-                            <span class="fw-semibold">${task.completed_at_formatted}</span>
+                            <span class="fw-semibold">${escapeHtml(task.completed_at_formatted)}</span>
                         </div>
                     </div>
                 `;
             }
 
-            modalBody.innerHTML = `
-                <!-- Task Title -->
-                <div class="mb-4">
-                    <h4 class="fw-bold mb-2">${task.title}</h4>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span class="badge bg-${statusBadgeClass} rounded-pill px-3 py-2">
-                            <i class="fas fa-${task.status === 'completed' ? 'check' : task.status === 'in_progress' ? 'clock' : 'circle'} me-1"></i>${statusLabel}
-                        </span>
-                        <span class="badge bg-${priorityBadgeClass} rounded-pill px-3 py-2">
-                            <i class="fas fa-flag me-1"></i>${priorityLabel}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Description -->
-                ${task.description ? `
+            // Build description (escaped, with newline preservation)
+            let descriptionHtml = '';
+            if (task.description) {
+                const escapedDesc = escapeHtml(task.description).replace(/\n/g, '<br>');
+                descriptionHtml = `
                 <div class="mb-4">
                     <small class="text-muted d-block mb-2">Description</small>
                     <div class="p-3 bg-light rounded">
-                        <p class="mb-0">${task.description.replace(/\n/g, '<br>')}</p>
+                        <p class="mb-0">${escapedDesc}</p>
                     </div>
                 </div>
-                ` : `
+                `;
+            } else {
+                descriptionHtml = `
                 <div class="mb-4">
                     <small class="text-muted d-block mb-2">Description</small>
                     <div class="p-3 bg-light rounded">
                         <p class="mb-0 text-muted fst-italic">No description provided</p>
                     </div>
                 </div>
-                `}
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <!-- Task Title -->
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-2">${escapeHtml(task.title)}</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-${statusBadgeClass} rounded-pill px-3 py-2">
+                            <i class="fas fa-${task.status === 'completed' ? 'check' : task.status === 'in_progress' ? 'clock' : 'circle'} me-1"></i>${escapeHtml(statusLabel)}
+                        </span>
+                        <span class="badge bg-${priorityBadgeClass} rounded-pill px-3 py-2">
+                            <i class="fas fa-flag me-1"></i>${escapeHtml(priorityLabel)}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                ${descriptionHtml}
 
                 <!-- Metadata Grid -->
                 <div class="row g-3 mb-4">
@@ -2234,7 +2251,7 @@
                         <small class="text-muted d-block mb-1">Due Date</small>
                         <div class="d-flex align-items-center">
                             <i class="far fa-calendar text-primary me-2"></i>
-                            <span class="fw-semibold">${task.due_date_formatted}</span>
+                            <span class="fw-semibold">${escapeHtml(task.due_date_formatted)}</span>
                         </div>
                     </div>
                     ${completedHtml}

@@ -1,3 +1,20 @@
+"""Database connection, initialisation and schema migration.
+
+This module manages the SQLite database lifecycle:
+
+- ``get_db()`` returns a per-request connection (closed automatically).
+- ``init_db()`` creates tables from ``task_schema.sql``.
+- ``update_db_schema()`` applies incremental migrations and creates
+  performance indexes on frequently queried columns.
+
+Security notes
+--------------
+- All queries in the application use parameterised placeholders (``?``)
+  to prevent SQL injection.
+- The database file is stored in ``instance/taskmanager.db`` (outside the
+  application package) so it is never served to users.
+"""
+
 import os
 import sqlite3
 import logging
@@ -7,7 +24,11 @@ from flask import current_app, g
 
 
 def get_db() -> sqlite3.Connection:
-    """Return a SQLite connection for the current application context."""
+    """Return a SQLite connection scoped to the current request.
+
+    Connections are stored on Flask's ``g`` object and automatically
+    closed by ``close_db`` when the request ends.
+    """
     if "db" not in g:
         database_path = current_app.config["DATABASE"]
         g.db = sqlite3.connect(database_path)
@@ -16,32 +37,33 @@ def get_db() -> sqlite3.Connection:
 
 
 def close_db(e: Exception | None = None) -> None:
-    """Close and remove the database connection from the application context."""
+    """Close the database connection stored on ``g``."""
     db = g.pop("db", None)
-
     if db is not None:
         db.close()
 
 
 def init_db() -> None:
-    """Initialize the database using the bundled schema file."""
+    """Create all tables from ``task_schema.sql`` (destructive)."""
     db = get_db()
     schema_path = os.path.join(
-        current_app.root_path, current_app.config.get("SCHEMA_PATH", "task_schema.sql")
+        current_app.root_path,
+        current_app.config.get("SCHEMA_PATH", "task_schema.sql"),
     )
     with open(schema_path, "r", encoding="utf-8") as f:
         db.executescript(f.read())
 
 
 def update_db_schema() -> None:
-    """Apply database schema updates for HSC Study Planner.
+    """Apply incremental schema migrations and create performance indexes.
 
-    This will run optional schema migration scripts and create helpful
-    indexes if they are missing.
+    Safe to run repeatedly -- missing tables/columns are added, existing
+    ones are left untouched.  Indexes are only created if they do not
+    already exist.
     """
     db = get_db()
 
-    def has_index(name):
+    def has_index(name: str) -> bool:
         return (
             db.execute(
                 "SELECT name FROM sqlite_master WHERE type='index' AND name = ?",
@@ -51,6 +73,7 @@ def update_db_schema() -> None:
         )
 
     def create_index(name: str, sql: str) -> None:
+        """Create an index only if it does not already exist."""
         try:
             if not has_index(name):
                 db.execute(sql)
@@ -59,37 +82,31 @@ def update_db_schema() -> None:
                 "Failed to create index %s: %s", name, e
             )
 
-    # Check if subjects table exists
-    try:
-        db.execute("SELECT 1 FROM subjects LIMIT 1")
-        subjects_exists = True
-    except sqlite3.OperationalError:
-        subjects_exists = False
+    # --- Check which tables exist -----------------------------------------
+    def table_exists(table_name: str) -> bool:
+        """Check if a table exists using sqlite_master (no user input)."""
+        result = db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+            (table_name,),
+        ).fetchone()
+        return result is not None
 
-    # Check if assessment_results table exists
-    try:
-        db.execute("SELECT 1 FROM assessment_results LIMIT 1")
-        assessment_results_exists = True
-    except sqlite3.OperationalError:
-        assessment_results_exists = False
+    subjects_exists = table_exists("subjects")
+    assessment_results_exists = table_exists("assessment_results")
+    tasks_exists = table_exists("tasks")
+    subject_id_exists = False
+    if tasks_exists:
+        try:
+            db.execute("SELECT subject_id FROM tasks LIMIT 1")
+            subject_id_exists = True
+        except sqlite3.OperationalError:
+            pass
 
-    # Check if tasks table exists
-    try:
-        db.execute("SELECT 1 FROM tasks LIMIT 1")
-        tasks_exists = True
-    except sqlite3.OperationalError:
-        tasks_exists = False
-
-    # Check if tasks table has subject_id column
-    try:
-        db.execute("SELECT subject_id FROM tasks LIMIT 1")
-        subject_id_exists = True
-    except sqlite3.OperationalError:
-        subject_id_exists = False
-
-    # Apply schema updates if needed
+    # --- Apply schema migrations if needed --------------------------------
     if not subjects_exists or not assessment_results_exists or not subject_id_exists:
-        schema_updates_path = os.path.join(current_app.root_path, "schema_updates.sql")
+        schema_updates_path = os.path.join(
+            current_app.root_path, "schema_updates.sql"
+        )
         if os.path.exists(schema_updates_path):
             with open(schema_updates_path, "r", encoding="utf-8") as f:
                 db.executescript(f.read())
@@ -102,19 +119,25 @@ def update_db_schema() -> None:
     else:
         click.echo("Database schema is up to date.")
 
+    # --- Create performance indexes ---------------------------------------
+    # Indexes speed up the most common queries (user_id lookups, status
+    # filtering, subject grouping).
     if tasks_exists:
         create_index(
-            "idx_tasks_user_id", "CREATE INDEX idx_tasks_user_id ON tasks (user_id)"
+            "idx_tasks_user_id",
+            "CREATE INDEX idx_tasks_user_id ON tasks (user_id)",
         )
         create_index(
             "idx_tasks_subject_id",
             "CREATE INDEX idx_tasks_subject_id ON tasks (subject_id)",
         )
         create_index(
-            "idx_tasks_status", "CREATE INDEX idx_tasks_status ON tasks (status)"
+            "idx_tasks_status",
+            "CREATE INDEX idx_tasks_status ON tasks (status)",
         )
         create_index(
-            "idx_tasks_priority", "CREATE INDEX idx_tasks_priority ON tasks (priority)"
+            "idx_tasks_priority",
+            "CREATE INDEX idx_tasks_priority ON tasks (priority)",
         )
 
     if subjects_exists:
@@ -126,7 +149,8 @@ def update_db_schema() -> None:
     if assessment_results_exists:
         create_index(
             "idx_assessment_results_subject_user",
-            "CREATE INDEX idx_assessment_results_subject_user ON assessment_results (subject_id, user_id)",
+            "CREATE INDEX idx_assessment_results_subject_user "
+            "ON assessment_results (subject_id, user_id)",
         )
 
     if tasks_exists or subjects_exists or assessment_results_exists:
@@ -134,29 +158,26 @@ def update_db_schema() -> None:
 
 
 def init_app(app) -> None:
-    """Register database handlers and CLI commands on the Flask app.
+    """Register database teardown and CLI commands on the Flask app.
 
-    Args:
-        app: Flask application instance.
+    Also ensures the database directory exists and the schema is current.
     """
     app.teardown_appcontext(close_db)
 
-    # Ensure the database directory exists
+    # Ensure the database directory exists before connecting.
     os.makedirs(os.path.dirname(app.config["DATABASE"]), exist_ok=True)
 
-    # Initialize the database if it doesn't exist
+    # Auto-initialise the database on first run.
     with app.app_context():
         db = get_db()
         try:
-            # Try to query the users table to see if it exists
             db.execute("SELECT 1 FROM users LIMIT 1")
-            # Database exists, check for schema updates
+            # Database exists -- apply any pending migrations.
             update_db_schema()
         except sqlite3.OperationalError:
-            # If the query fails, initialize the database
+            # Fresh install -- create tables, then apply migrations.
             init_db()
             logging.getLogger(__name__).info("Initialized the database.")
-            # Apply schema updates after initialization
             update_db_schema()
 
     @app.cli.command("init-db")

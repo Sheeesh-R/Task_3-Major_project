@@ -1,8 +1,33 @@
 """ATAR scaling and estimation utilities.
 
-This module provides functions to convert HSC marks to scaled marks using
-polynomial regression on published scaling anchor points, aggregate the
-scaled marks and convert an aggregate score to an estimated ATAR.
+This module converts raw HSC marks into scaled marks using **Polynomial
+Regression** trained on published UAC scaling anchor points.  The scaled
+marks are then aggregated and mapped to an estimated ATAR.
+
+Machine-learning pipeline
+-------------------------
+1. **Training data** -- Each subject has a list of (hsc_mark, scaled_mark)
+   anchor points sourced from UAC / hscscalinggraphs.au / matrix.edu.au.
+2. **Model selection** -- The polynomial degree is chosen automatically:
+   * 8+ anchor points  -> degree 4 (captures non-linear scaling curves)
+   * 3-7 anchor points -> degree 3
+   * 2 anchor points   -> degree 1 (linear)
+   * 1 anchor point    -> linear fallback (no model trained)
+3. **Hybrid interpolation** -- For the sparse region between the first and
+   second anchor points a simple linear interpolation is used to avoid
+   polynomial oscillation; the polynomial model handles the denser region
+   above the second anchor.
+4. **Clamping** -- Predictions are clamped to [0, 100] to prevent
+   unreasonable extrapolation outside the training range.
+5. **Caching** -- Trained pipelines are cached in ``_POLYNOMIAL_MODELS``
+   so each subject's model is fitted only once per process lifetime.
+
+Aggregate-to-ATAR mapping
+-------------------------
+The aggregate (sum of the best 10 scaled unit marks divided by 2) is
+converted to an ATAR via linear interpolation on the UAC published
+conversion table.  The final ATAR is rounded to the nearest 0.05
+(UAC reporting increment).
 """
 
 from typing import Any, Optional
@@ -16,6 +41,7 @@ from sklearn.pipeline import make_pipeline
 _LOGGER = logging.getLogger(__name__)
 
 # Scaling data from ATAR_calc.md (hscscalinggraphs.au + matrix.edu.au anchors)
+# Each entry maps a subject name to a list of (hsc_mark, scaled_mark) tuples.
 SUBJECT_SCALING_POINTS = {
     # English subjects
     "English Advanced": [
@@ -350,41 +376,49 @@ SUBJECT_ALIASES = {
     "Software Design & Development": "Software Engineering",
 }
 
-# Cache for polynomial models to avoid retraining
-_POLYNOMIAL_MODELS = {}
+# Cache for polynomial models to avoid retraining on every request.
+_POLYNOMIAL_MODELS: dict[str, Any] = {}
 
 
 def resolve_subject_name(subject_name: str) -> str:
-    """Map UI/NESA subject names to SUBJECT_SCALING_POINTS keys."""
+    """Map UI / NESA subject names to the keys in SUBJECT_SCALING_POINTS."""
     return SUBJECT_ALIASES.get(subject_name, subject_name)
 
 
 def get_polynomial_model(subject_name: str) -> Optional[Any]:
     """Return a cached or newly trained polynomial regression model.
 
+    The model is a scikit-learn ``Pipeline`` that first expands features
+    to polynomial terms (``PolynomialFeatures``) then fits a linear
+    regression (``LinearRegression``) on those expanded features.
+
+    Degree selection heuristic (from ATAR_calc.md):
+        * >= 8 anchor points -> degree 4 (captures complex non-linearity)
+        * 2 anchor points    -> degree 1 (simple linear interpolation)
+        * otherwise          -> min(3, n-1)
+
     Args:
-        subject_name: Subject name matching SUBJECT_SCALING_POINTS keys.
+        subject_name: Must match a key in ``SUBJECT_SCALING_POINTS``.
 
     Returns:
-        A scikit-learn pipeline model or ``None`` if the subject is unknown.
+        Fitted scikit-learn pipeline, or ``None`` for single-point subjects.
     """
     subject_name = resolve_subject_name(subject_name)
     if subject_name not in SUBJECT_SCALING_POINTS:
         return None
 
-    # Return cached model if already created
+    # Return cached model if already trained (avoids re-fitting).
     if subject_name in _POLYNOMIAL_MODELS:
         return _POLYNOMIAL_MODELS[subject_name]
 
-    # Get scaling data for this subject
     data_points = SUBJECT_SCALING_POINTS[subject_name]
     n = len(data_points)
 
-    # Single-point subjects use linear fallback in get_scaled_mark
+    # Single-point subjects have no training range; fall back to linear.
     if n == 1:
         return None
 
-    # Degree selection per ATAR_calc.md
+    # --- Degree selection ------------------------------------------------
     if n >= 8:
         degree = 4
     elif n == 2:
@@ -392,17 +426,20 @@ def get_polynomial_model(subject_name: str) -> Optional[Any]:
     else:
         degree = min(3, n - 1)
 
-    # Create polynomial features and fit model
+    # --- Feature matrix and target vector --------------------------------
     X = np.array([point[0] for point in data_points]).reshape(-1, 1)
     y = np.array([point[1] for point in data_points])
 
+    # --- Build and fit the pipeline --------------------------------------
+    # PolynomialFeatures generates [x, x^2, ..., x^degree] from the raw mark.
+    # LinearRegression then learns coefficients for each polynomial term.
     model = make_pipeline(
-        PolynomialFeatures(degree=degree, include_bias=False), LinearRegression()
+        PolynomialFeatures(degree=degree, include_bias=False),
+        LinearRegression(),
     )
-
     model.fit(X, y)
 
-    # Cache and return the model
+    # Cache for future calls so each subject is trained at most once.
     _POLYNOMIAL_MODELS[subject_name] = model
     return model
 
@@ -429,72 +466,66 @@ def round_atar(atar: float) -> float:
 
 
 def get_scaled_mark(subject_name: str, hsc_mark: float) -> float:
-    """Convert an HSC mark to a scaled mark for a specific subject.
+    """Convert an HSC mark to a scaled mark using the trained polynomial model.
 
-    Uses polynomial regression (degree 4 for subjects with 8+ data points,
-    degree 3 for fewer) trained on published scaling anchor points.
-    For sparse low-end data regions, uses linear interpolation from the first
-    anchor point to the second anchor point to avoid polynomial oscillation.
-    Inputs are clamped to the training range to avoid unreasonable extrapolation.
-    The returned value is clipped to the 0-100 range.
+    Hybrid approach:
+        1. Below the first anchor  -> linear extrapolation from origin.
+        2. Between 1st and 2nd     -> linear interpolation (avoids polynomial
+           anchor points              oscillation in the sparse low-end region).
+        3. Above the 2nd anchor   -> polynomial regression prediction.
+        4. Above the max anchor   -> clamped to the maximum scaled value.
 
     Args:
-        subject_name: Name of the subject as found in SUBJECT_SCALING_POINTS.
-        hsc_mark: Raw HSC mark on the 0-100 scale used by scaling data
-            (extension marks out of 50 should be normalised before calling).
+        subject_name: Subject name (resolved via ``SUBJECT_ALIASES``).
+        hsc_mark: Raw mark on 0-100 scale (extension marks must be
+                  normalised first via ``normalize_hsc_mark_for_scaling``).
 
     Returns:
-        Scaled mark as a float between 0 and 100.
+        Scaled mark clipped to [0, 100].
     """
     subject_name = resolve_subject_name(subject_name)
     if subject_name not in SUBJECT_SCALING_POINTS:
         return float(np.clip(hsc_mark, 0, 100))
 
-    # Get the polynomial model
     model = get_polynomial_model(subject_name)
     data_points = sorted(SUBJECT_SCALING_POINTS[subject_name], key=lambda p: p[0])
     min_mark = data_points[0][0]
     max_mark = data_points[-1][0]
 
-    # Determine the reliable range for polynomial regression.
-    # For subjects with a gap after the first point, use linear interpolation
-    # up to the second data point, then polynomial regression.
+    # The polynomial model is only reliable above the second anchor point.
+    # Below that, linear interpolation avoids wild oscillation.
     poly_min_mark = min_mark
     if len(data_points) >= 2:
-        # Use polynomial only from the 2nd data point onwards
-        # This avoids oscillation in the sparse region between 1st and 2nd point
         poly_min_mark = data_points[1][0]
 
     if model is not None:
         if hsc_mark < min_mark:
-            # Linear extrapolation below minimum
-            if min_mark > 0:
-                scaled_mark = (hsc_mark / min_mark) * data_points[0][1]
-            else:
-                scaled_mark = 0.0
+            # Linear extrapolation below the training range.
+            scaled_mark = (
+                (hsc_mark / min_mark) * data_points[0][1] if min_mark > 0 else 0.0
+            )
         elif hsc_mark > max_mark:
-            # Clamp to maximum
+            # Clamp to the highest published scaled value.
             scaled_mark = data_points[-1][1]
         elif hsc_mark < poly_min_mark:
-            # Sparse region: linear interpolation between 1st and 2nd data point
+            # Sparse region: linear interpolation between the first two anchors.
             x1, y1 = data_points[0]
             x2, y2 = data_points[1]
             scaled_mark = y1 + (hsc_mark - x1) * (y2 - y1) / (x2 - x1)
         else:
-            # Dense region: use polynomial model
+            # Dense region: use the trained polynomial model.
             scaled_mark = float(model.predict([[hsc_mark]])[0])
     else:
-        # Single-point subjects: use linear interpolation
+        # Single-point subjects: linear interpolation across all anchors.
         xs = [point[0] for point in data_points]
         ys = [point[1] for point in data_points]
         min_mark, min_scaled = data_points[0]
         max_mark, max_scaled = data_points[-1]
 
         if hsc_mark <= min_mark:
-            if min_mark > 0:
-                scaled_mark = (hsc_mark / min_mark) * min_scaled
-            else:
-                scaled_mark = 0.0
+            scaled_mark = (
+                (hsc_mark / min_mark) * min_scaled if min_mark > 0 else 0.0
+            )
         elif hsc_mark >= max_mark:
             scaled_mark = max_scaled
         else:
@@ -547,10 +578,19 @@ def generate_polynomial_curve_points(subject_name: str) -> list[dict[str, float]
 
 
 def aggregate_to_atar(aggregate: float) -> float:
-    """
-    Convert aggregate score to ATAR using linear interpolation.
+    """Map an aggregate score to an estimated ATAR via linear interpolation.
 
-    Based on UAC published conversion table.
+    Uses the UAC published conversion table (34 breakpoints from
+    aggregate 0 -> ATAR 0.00 up to aggregate 500 -> ATAR 99.95).
+
+    The aggregate is the sum of the best 10 scaled unit marks divided
+    by 2 (each unit contributes a maximum of 50 points).
+
+    Args:
+        aggregate: Aggregate score (typically 0-500).
+
+    Returns:
+        Estimated ATAR rounded to the nearest 0.05.
     """
     # UAC conversion breakpoints (aggregate, ATAR) — ATAR_calc.md
     conversion_points = [
@@ -590,36 +630,47 @@ def aggregate_to_atar(aggregate: float) -> float:
         (0, 0.00),
     ]
 
-    # Sort points by aggregate score (ascending)
     conversion_points.sort()
 
-    # Find the appropriate range and interpolate
+    # Linear interpolation between the two bounding breakpoints.
     for i in range(len(conversion_points) - 1):
         x1, y1 = conversion_points[i]
         x2, y2 = conversion_points[i + 1]
-        if aggregate >= x1 and aggregate <= x2:
-            # Linear interpolation between two points
+        if x1 <= aggregate <= x2:
             atar = y1 + (aggregate - x1) * (y2 - y1) / (x2 - x1)
             return max(0.0, min(99.95, atar))
 
-    # If aggregate is below minimum or above maximum, return nearest value
+    # Edge cases: below or above the conversion table range.
     if aggregate < conversion_points[0][0]:
         return 0.0
-    elif aggregate > conversion_points[-1][0]:
-        return 99.95
-    else:
-        return conversion_points[-1][1]
+    return conversion_points[-1][1]
 
 
 def calculate_atar_estimate(subjects: list[dict]) -> dict:
-    """
-    Calculate ATAR estimate from list of subjects with HSC marks.
+    """Calculate an ATAR estimate from a list of subjects and their HSC marks.
+
+    Algorithm:
+        1. For each subject, normalise the mark (extension /50 -> /100)
+           then pass it through the polynomial regression model to get a
+           scaled mark.
+        2. Expand 2-unit subjects into two individual unit entries, each
+           carrying the same scaled mark.
+        3. Rank all units by scaled mark descending and select the best
+           10, enforcing the UAC rule that at least 2 units must be
+           from English subjects (if available).
+        4. The aggregate is the sum of the 10 selected scaled marks
+           divided by 2 (each unit contributes out of 50).
+        5. The aggregate is mapped to an ATAR via the UAC conversion table.
 
     Args:
-        subjects: List of dictionaries with 'subject_name', 'hsc_mark', and 'units'
+        subjects: List of dicts, each containing:
+            - ``subject_name`` (str): e.g. "Physics"
+            - ``hsc_mark`` (float): raw mark 0-100 (or 0-50 for extensions)
+            - ``units`` (int, optional): unit value (default 2)
 
     Returns:
-        Dictionary with ATAR calculation results
+        Dict with keys: ``atar``, ``aggregate``, ``subject_results``,
+        ``units_counted``, ``english_counted``.
     """
     if not subjects:
         return {
@@ -630,69 +681,65 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
             "english_counted": False,
         }
 
-    # Calculate scaled marks for each subject
+    # --- Step 1: Scale each subject's mark --------------------------------
     subject_results = []
     for subject in subjects:
         subject_name = subject["subject_name"]
         hsc_mark = subject["hsc_mark"]
         units = subject.get("units", 2)
 
+        # Normalise extension subjects (out of 50) to the /100 scale.
         scaling_mark = normalize_hsc_mark_for_scaling(subject_name, hsc_mark)
         scaled_mark = get_scaled_mark(subject_name, scaling_mark)
-        contribution = scaled_mark
 
-        subject_results.append(
-            {
-                "subject_name": subject_name,
-                "hsc_mark": hsc_mark,
-                "scaled_mark": scaled_mark,
-                "units": units,
-                "contribution": contribution,
-            }
-        )
+        subject_results.append({
+            "subject_name": subject_name,
+            "hsc_mark": hsc_mark,
+            "scaled_mark": scaled_mark,
+            "units": units,
+            "contribution": scaled_mark,
+        })
 
-    # Expand subjects into individual units
-    # Each unit gets the same scaled mark as the subject
+    # --- Step 2: Expand into individual units -----------------------------
+    # A 2-unit subject counts as 2 separate units in the aggregate.
     unit_list = []
     for subject in subject_results:
-        units_count = subject["units"]
-        for _ in range(units_count):
-            unit_list.append(
-                {
-                    "subject_name": subject["subject_name"],
-                    "hsc_mark": subject["hsc_mark"],
-                    "scaled_mark": subject["scaled_mark"],
-                    "is_english": "English" in subject["subject_name"],
-                }
-            )
+        for _ in range(subject["units"]):
+            unit_list.append({
+                "subject_name": subject["subject_name"],
+                "hsc_mark": subject["hsc_mark"],
+                "scaled_mark": subject["scaled_mark"],
+                "is_english": "English" in subject["subject_name"],
+            })
 
-    # Sort all units by scaled mark descending
+    # --- Step 3: Select best 10 units (UAC rule) -------------------------
+    # UAC requires at least 2 English units to be included in the
+    # aggregate calculation if the student has 2+ English units.
     unit_list.sort(key=lambda x: x["scaled_mark"], reverse=True)
 
-    # Select top 10 units, ensuring at least 2 English units if available
     selected_units_list = []
     english_units = [u for u in unit_list if u["is_english"]]
-    
-    # Ensure at least 2 English units are included
     english_counted = len(english_units) >= 2
+
     if english_counted:
         selected_units_list.extend(english_units[:2])
     elif english_units:
         selected_units_list.extend(english_units)
 
-    # Add remaining best units to reach 10
     remaining_units = [u for u in unit_list if u not in selected_units_list]
     remaining_needed = 10 - len(selected_units_list)
     selected_units_list.extend(remaining_units[:remaining_needed])
 
-    # Calculate aggregate score from selected units
-    # Scaled marks are out of 100, but each unit contributes out of 50 to the aggregate
+    # --- Step 4: Compute aggregate ----------------------------------------
+    # Each unit contributes out of 50, so divide the scaled mark by 2.
     aggregate_score = sum(u["scaled_mark"] / 2 for u in selected_units_list)
     units_counted = len(selected_units_list)
 
-    # Reconstruct subject_results for display (group units by subject)
-    # This shows which subjects contributed and how many units
-    selected_by_subject = {}
+    # --- Step 5: Map aggregate -> ATAR ------------------------------------
+    atar_score = aggregate_to_atar(aggregate_score)
+
+    # --- Build per-subject breakdown for display --------------------------
+    selected_by_subject: dict[str, dict] = {}
     for unit in selected_units_list:
         subj_name = unit["subject_name"]
         if subj_name not in selected_by_subject:
@@ -704,17 +751,12 @@ def calculate_atar_estimate(subjects: list[dict]) -> dict:
                 "contribution": 0.0,
             }
         selected_by_subject[subj_name]["units"] += 1
-        selected_by_subject[subj_name]["contribution"] += unit["scaled_mark"] / 2  # Add per-unit contribution
-
-    selected_units = list(selected_by_subject.values())
-
-    # Convert aggregate to ATAR
-    atar_score = aggregate_to_atar(aggregate_score)
+        selected_by_subject[subj_name]["contribution"] += unit["scaled_mark"] / 2
 
     return {
         "atar": round_atar(atar_score),
         "aggregate": round(aggregate_score, 1),
-        "subject_results": selected_units,
+        "subject_results": list(selected_by_subject.values()),
         "units_counted": units_counted,
         "english_counted": english_counted,
     }

@@ -1,20 +1,24 @@
 """
 HSC Study Planner - Flask Web Application
-=======================================
+==========================================
 A comprehensive task management and ATAR prediction system for HSC students.
 
-This application allows students to:
-- Track tasks by subject with priority and due dates
-- Monitor assessment results and calculate estimated marks
-- Predict ATAR scores using Polynomial Regression models
-- Manage subjects and view academic progress
+Features
+--------
+- Subject-based task organisation with CRUD operations.
+- Assessment marks tracking with weighted calculations.
+- ATAR prediction via Polynomial Regression (scikit-learn) on UAC scaling data.
+- User authentication with Werkzeug password hashing (PBKDF2-SHA256).
+- CSRF protection on all state-changing forms (Flask-WTF).
+- Security headers (CSP, X-Frame-Options, HSTS, etc.) applied to every response.
 
-Features:
-- Subject-based task organization
-- Assessment marks tracking with weighted calculations
-- ATAR prediction with UAC scaling data
-- Academic-themed UI with navy/gold colour scheme
-- Responsive design for desktop and mobile
+Security model
+--------------
+- SECRET_KEY loaded from environment variable; fallback only in development.
+- Passwords stored using ``werkzeug.security.generate_password_hash`` (salted).
+- All SQL queries use parameterised placeholders (``?``) to prevent SQLi.
+- Session cookies set with HttpOnly, Secure (production), SameSite=Lax.
+- User isolation enforced: every query scopes results to ``g.user["id"]``.
 """
 
 import os
@@ -46,12 +50,16 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
 
-# Load environment variables from .env file
+# Load environment variables from .env file (SECRET_KEY, LOG_LEVEL, etc.)
 load_dotenv()
 
 
 def login_required(view):
-    """Decorator to require login for accessing a route."""
+    """Decorator to require an authenticated session for a route.
+
+    Redirects unauthenticated users to the login page.  Applied to every
+    route that accesses user-specific data.
+    """
 
     @wraps(view)
     def wrapped_view(**kwargs):
@@ -63,20 +71,40 @@ def login_required(view):
 
 
 def create_app() -> Flask:
+    """Application factory: builds, configures and returns the Flask app.
+
+    Configuration loaded from environment variables where possible so that
+    secrets are never hard-coded in source files.
+    """
     app = Flask(__name__, static_folder="static")
-    # Basic logging configuration
+
+    # ---------- Logging -------------------------------------------------
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
     app.logger.setLevel(logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO")))
+
+    # ---------- Core configuration --------------------------------------
+    # SECRET_KEY: used by Flask for signing session cookies and CSRF tokens.
+    # Loaded from the SECRET_KEY environment variable; a fallback is only
+    # used during local development and triggers a log warning.
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "fallback-for-dev-only"),
         DATABASE=os.path.join(app.instance_path, "taskmanager.db"),
         SCHEMA_PATH="task_schema.sql",
         WTF_CSRF_ENABLED=True,
+        # --- Session cookie security -----------------------------------
+        # HttpOnly: prevents JavaScript access to the cookie (XSS mitigation).
+        # Secure:   cookie only sent over HTTPS in production (not in debug).
+        # SameSite: 'Lax' provides CSRF protection for top-level navigations.
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SECURE=not app.debug,
+        SESSION_COOKIE_SAMESITE="Lax",
+        PERMANENT_SESSION_LIFETIME=3600,  # 1-hour session expiry
     )
-    # Warn if running with fallback secret key
+
     if app.config.get("SECRET_KEY") == "fallback-for-dev-only":
         app.logger.warning(
-            "SECRET_KEY not set in environment; using insecure fallback (development only)"
+            "SECRET_KEY not set in environment; "
+            "using insecure fallback (development only)"
         )
 
     # Register custom Jinja2 filter HERE (inside create_app)
@@ -238,6 +266,52 @@ def create_app() -> Flask:
             if len(title) > max_chars:
                 return title[:max_chars] + "..."
             return title
+
+    # --- Security headers middleware -----------------------------------
+    # Applied to every response via Flask's after_request hook.
+    # Implements OWASP recommended headers for defence-in-depth.
+    @app.after_request
+    def add_security_headers(response):
+        """Inject OWASP-recommended security headers into every response.
+
+        Headers applied:
+        - X-Frame-Options: DENY           -> prevents clickjacking.
+        - X-Content-Type-Options: nosniff -> prevents MIME-type sniffing.
+        - X-XSS-Protection: 1; mode=block -> legacy XSS filter (older browsers).
+        - Referrer-Policy                 -> limits referrer leakage.
+        - Content-Security-Policy         -> restricts resource loading origins.
+        - Strict-Transport-Security       -> forces HTTPS in production (HSTS).
+        """
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # CSP: restricts scripts, styles, fonts, images to known-safe origins.
+        # 'unsafe-inline' is required for Bootstrap/Chart.js inline styles/scripts.
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' "
+            "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' "
+            "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com "
+            "https://fonts.googleapis.com; "
+            "font-src 'self' https://cdnjs.cloudflare.com "
+            "https://fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response.headers["Content-Security-Policy"] = csp
+
+        # HSTS: only enabled in production when served over HTTPS.
+        if not app.debug and request.is_secure:
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+        return response
 
     return app
 
@@ -1451,4 +1525,4 @@ def handle_500(error):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=app.debug)
