@@ -53,41 +53,70 @@ A Flask-based task management application designed to help students organize the
    ```bash
    pip install -r requirements.txt
    ```
-3. **Run the development server**
+3. **Set up environment variables**
+
+   Copy the example environment file and set a secure secret key:
+   ```bash
+   cp Task_Organiser_App/.env .env
+   ```
+   Edit `.env` and replace the `SECRET_KEY` value with your own random hex string. This key is used for signing session cookies and CSRF tokens. **Never commit your `.env` file to version control.**
+
+   If no `SECRET_KEY` is set, the app falls back to an insecure default and logs a warning — this is only acceptable for local development.
+4. **Run the development server**
    ```bash
    python run.py
    ```
-4. Open your browser at http://127.0.0.1:5000 to view the application. You'll be redirected to login if not authenticated.
+5. Open your browser at http://127.0.0.1:5000 to view the application. You'll be redirected to login if not authenticated.
 
 ## Project Structure
 ```
-Task_Organiser_App/Task_Organiser/
-├── app.py                 # Main Flask application with routes and filters
-├── db.py                  # Database initialization and connection handling
-├── run.py                 # Application entry point
-├── instance/
-│   └── taskmanager.db     # SQLite database (auto-created)
-├── task_schema.sql        # Database schema definitions
+Task_Organiser/
+├── Task_Organiser/            # Main Flask application package
+│   ├── app.py                 # Routes, filters, and app factory
+│   ├── db.py                  # Database initialization and connection handling
+│   ├── atar_data.py           # ATAR calculation logic
+│   ├── task_schema.sql        # Database schema definitions
+│   ├── schema_updates.sql     # Incremental schema migrations
+│   └── templates/
+│       ├── base.html          # Base template with common layout
+│       ├── index.html         # Main dashboard with task list
+│       ├── add_task.html      # Task creation form
+│       ├── edit_task.html     # Task editing form
+│       ├── login.html         # User login page
+│       ├── register.html      # User registration page
+│       ├── subjects.html      # Subject management page
+│       ├── edit_subject.html  # Subject editing form
+│       ├── atar.html          # ATAR calculator page
+│       ├── atar_calculation.html  # ATAR explanation page
+│       ├── about.html         # About page
+│       ├── contact.html       # Contact form
+│       ├── marks.html         # Marks tracking page
+│       ├── 404.html           # Not found error page
+│       └── 500.html           # Server error page
 ├── static/
-│   └── css/              # Custom CSS files
-├── templates/
-│   ├── base.html         # Base template with common layout
-│   ├── index.html        # Main dashboard with task list
-│   ├── add_task.html     # Task creation form
-│   ├── edit_task.html    # Task editing form
-│   ├── login.html        # User login page
-│   ├── register.html     # User registration page
-│   └── ...
+│   └── css/
+│       └── styles.css         # Custom CSS styles
+├── tests/
+│   └── test_atar_data.py      # ATAR calculation unit tests
+├── instance/
+│   └── taskmanager.db         # SQLite database (auto-created)
+├── Task_Organiser_App/
+│   └── .env                   # Environment variables (SECRET_KEY)
+├── run.py                     # Application entry point
+├── requirements.txt           # Python dependencies
 └── README.md
 ```
 
 ## Database Schema
-The application uses SQLite with the following main tables:
+The application uses SQLite with the following tables:
 - **users**: User authentication and profile information
-- **tasks**: Task details including status, priority, due dates, and categories
+- **tasks**: Task details including status, priority, due dates, and subject assignment
+- **subjects**: User-managed subjects with units and target marks
 - **categories**: Task categorization system
+- **assessment_results**: Assessment marks tracking with weighted calculations
+- **atar_predictions**: Saved ATAR prediction results per user
 
-The database is automatically initialized when the app starts if it doesn't exist.
+The database is automatically initialized when the app starts if it doesn't exist. Schema migrations are applied incrementally.
 
 ## Mobile Features
 The application includes extensive mobile optimizations:
@@ -106,22 +135,17 @@ The application includes extensive mobile optimizations:
 - Optimized calendar display on mobile devices
 
 ## Running Tests
-The repository includes automated tests with Python's built-in `unittest` framework.
+The repository includes automated tests using `pytest`.
 
 Run tests from the project root:
 ```bash
+pytest tests/
+```
+
+Or using Python's built-in unittest discovery:
+```bash
 python -m unittest discover -s tests -p 'test_*.py'
 ```
-
-## Docker
-Build and run the application using Docker:
-```bash
-docker build -t task-organiser-app .
-docker run -p 5000:5000 task-organiser-app
-```
-
-## Continuous Integration
-A GitHub Actions workflow is included at `.github/workflows/ci.yml` to install dependencies, run unit tests, and validate Python syntax on push and pull requests.
 
 ## Contributing
 When contributing to this project:
